@@ -44,7 +44,7 @@ Thread = function(permalink) {
 
   this.permalink = permalink;
   this.comments = [];
-  this.userFreq = [];
+  this.userFreq = {};
 
   this.parse();
 
@@ -57,9 +57,14 @@ Thread.prototype = {
   parse: function() {
     GetUrlPromise(this.getUrl()).then(response => {
 
-      this.recurseData(response[1].data);
+      var children = response[1].data.children;
+      for(var i=0; i<children.length; i++) {
+        this.recurseData(children[i].data);
+      }
 
-      console.log(this.permalink + " comments: " + this.comments.length);
+      if(this.comments.length>10) {
+        console.log(this.permalink + " comments: " + this.comments.length);
+      }
     }).catch(function (err) {
       console.log(err.message);
     });
@@ -69,13 +74,19 @@ Thread.prototype = {
     if(IsComment(data)) {
       var comment = new Comment(data.author);
       this.comments.push(comment);
-      this.userFreq[comment.user]++;
+      if(this.userFreq.hasOwnProperty(comment.user)) {
+        this.userFreq[comment.user]++;
+      }
+      else {
+        this.userFreq[comment.user] = 1;
+      }
     }
-    if(data.children != undefined) {
-      for(var i=0; i<data.children.length; i++) {
-        if(data.children[i].data != undefined) {
-          this.recurseData(data.children[i].data);
-        }
+
+    // var children = data.replies;
+    if(data.replies != undefined && data.replies != "") {
+      var children = data.replies.data.children;
+      for(var i=0; i<children.length; i++) {
+        this.recurseData(children[i].data);
       }
     }
   }
@@ -92,12 +103,12 @@ Subreddit = function(title) {
 Subreddit.prototype = {
 
   getUrl: function() {
-    return thisIsReddit + "r/" + this.title + '/.json';
+    return thisIsReddit + "r/" + this.title + '/.json?limit=200';
   },
   parse: function() {
     GetUrlPromise(this.getUrl()).then(response => {
 
-      console.log('got ' + this.title);
+      console.log('got ' + this.title + " t=" + response.data.children.length);
 
       for(var i=0; i<response.data.children.length; i++) {
         var child = response.data.children[i];
