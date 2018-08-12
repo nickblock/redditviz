@@ -1,26 +1,7 @@
-const https = require('https');
-
+const https = require('./http_module');
 const thisIsReddit = 'https://www.reddit.com/';
 
-GetUrlPromise = function(url) {
-  return new Promise(function(resolve, reject) {
 
-    https.get(url, (resp) => {
-      let data = ''
-
-      resp.on('data', (chunk) => {
-        data += chunk;
-      })
-      
-      resp.on('end', () => {
-        resolve(JSON.parse(data));
-      });
-
-    }).on("error", (err) => {
-      re1ect(err);
-    });
-  })
-}
 User = function() {
 
 }
@@ -55,14 +36,15 @@ Thread.prototype = {
     return thisIsReddit + this.permalink + '/.json'
   },
   parse: function() {
-    GetUrlPromise(this.getUrl()).then(response => {
+    
+    https.GetUrlPromise(this.getUrl()).then(response => {
 
       var children = response[1].data.children;
       for(var i=0; i<children.length; i++) {
         this.recurseData(children[i].data);
       }
 
-      if(this.comments.length>10) {
+      if(this.comments.length>100) {
         console.log(this.permalink + " comments: " + this.comments.length);
       }
     }).catch(function (err) {
@@ -106,7 +88,7 @@ Subreddit.prototype = {
     return thisIsReddit + "r/" + this.title + '/.json?limit=200';
   },
   parse: function() {
-    GetUrlPromise(this.getUrl()).then(response => {
+    https.GetUrlPromise(this.getUrl()).then(response => {
 
       console.log('got ' + this.title + " t=" + response.data.children.length);
 
@@ -115,8 +97,7 @@ Subreddit.prototype = {
 
         var threadLink = child.data.permalink;
 
-        this.threads.push(new Thread(threadLink))
-
+        this.threads.push(new Thread(threadLink));
       }
     })
     .catch(function(err) {
