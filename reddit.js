@@ -27,29 +27,35 @@ Thread = function(permalink) {
   this.comments = [];
   this.userFreq = {};
 
-  this.parse();
-
 }
 Thread.prototype = {
 
   getUrl: function() {
     return thisIsReddit + this.permalink + '/.json'
   },
-  parse: function() {
-    
-    https.GetUrlPromise(this.getUrl()).then(response => {
+  parse: function(comment_tree) {
 
-      var children = response[1].data.children;
-      for(var i=0; i<children.length; i++) {
-        this.recurseData(children[i].data);
-      }
+    var children = comment_tree[1].data.children;
+    for(var i=0; i<children.length; i++) {
+      this.recurseData(children[i].data);
+    }
 
-      if(this.comments.length>100) {
-        console.log(this.permalink + " comments: " + this.comments.length);
-      }
-    }).catch(function (err) {
-      console.log(err.message);
-    });
+    if(this.comments.length>100) {
+      console.log(this.permalink + " comments: " + this.comments.length);
+    }
+  },
+  asyncProcess: function() {
+
+    var obj = this;
+
+    return new Promise(function(resolve, reject) {
+      
+      https.GetUrlPromise(obj.getUrl()).then(comment_tree => {
+        resolve(obj.parse(comment_tree));
+      }).catch(function (err) {
+        reject(err.message);
+      });
+    })
   },
   recurseData: function(data) {
 
@@ -92,13 +98,17 @@ Subreddit.prototype = {
 
       console.log('got ' + this.title + " t=" + response.data.children.length);
 
+      var threadParseList = [];
       for(var i=0; i<response.data.children.length; i++) {
         var child = response.data.children[i];
 
-        var threadLink = child.data.permalink;
-
-        this.threads.push(new Thread(threadLink));
+        var thread = new Thread(child.data.permalink);
+        threadParseList.push(thread.asyncProcess());
+        this.threads.push(thread);
       }
+      Promise.all(threadParseList).then(resp => {
+        console.log("Done threads");
+      })
     })
     .catch(function(err) {
       console.log(err.message);

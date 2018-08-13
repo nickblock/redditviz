@@ -3,3 +3,5 @@ const reddit = require("./reddit");
 
 
 subreddit = new reddit.Subreddit('unitedkingdom');
+
+console.log("sync out");
