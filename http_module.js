@@ -10,15 +10,17 @@ var convSlashToSpace = function(url) {
 var getcacheDir = function() {
     return cache_dir;
 }
+
 var getCacheFilePath = function(url) {
     return getcacheDir() + convSlashToSpace(url) + ".txt";
 }
+
 module.exports.GetUrlPromise = function(url) {
 
     return new Promise(function(resolve, reject) {
         
         var cache_file = getCacheFilePath(url);
-        if(fs.exists(cache_file, function(exists) {
+        fs.exists(cache_file, function(exists) {
             if(exists) {
                 resolve(JSON.parse(fs.readFileSync(cache_file)));
                 return;
@@ -40,6 +42,6 @@ module.exports.GetUrlPromise = function(url) {
                     re1ect(err);
                     });
             }
-        }));
-    })   
+        });
+    }) 
 }
