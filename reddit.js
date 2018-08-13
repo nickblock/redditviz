@@ -39,10 +39,7 @@ Thread.prototype = {
     for(var i=0; i<children.length; i++) {
       this.recurseData(children[i].data);
     }
-
-    if(this.comments.length>100) {
-      console.log(this.permalink + " comments: " + this.comments.length);
-    }
+    return this.userFreq;
   },
   asyncProcess: function() {
 
@@ -85,6 +82,7 @@ Subreddit = function(title) {
 
   this.title = title;
   this.threads = [];
+  this.userFreq = {};
 
   this.parse();
 }
@@ -106,13 +104,30 @@ Subreddit.prototype = {
         threadParseList.push(thread.asyncProcess());
         this.threads.push(thread);
       }
-      Promise.all(threadParseList).then(resp => {
-        console.log("Done threads");
+      Promise.all(threadParseList).then(userFrequencies => {
+        this.enumerateUsersOfThreads(userFrequencies);
       })
     })
     .catch(function(err) {
       console.log(err.message);
     });
+  },
+  enumerateUsersOfThreads: function(userFrequencies) {
+
+    for(var i=0; i<userFrequencies.length; i++) {
+      var userFreq = userFrequencies[i];
+      var userNames = Object.keys(userFreq);
+      for(var j=0; j<userNames.length; j++) {
+        var name = userNames[j];
+        if(this.userFreq.hasOwnProperty(name)) {
+          this.userFreq[name] += userFreq[name];
+        }
+        else {
+          this.userFreq[name] = userFreq[name];
+        }
+      }
+    }
+    console.log("Num Users = " + Object.keys(this.userFreq).length)
   }
 }
 
