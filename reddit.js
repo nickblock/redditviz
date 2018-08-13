@@ -2,8 +2,9 @@ const https = require('./http_module');
 const thisIsReddit = 'https://www.reddit.com/';
 
 
-User = function() {
-
+User = function(name, comments) {
+  this.name = name;
+  this.num_comments = comments;
 }
 Comment = function(user) {
   this.user = user;
@@ -112,22 +113,42 @@ Subreddit.prototype = {
       console.log(err.message);
     });
   },
-  enumerateUsersOfThreads: function(userFrequencies) {
+  sortUsersByComment: function(userFreq) {
 
+    var sortedUsers = [];
+    var names = Object.keys(userFreq);
+    for(var i=0; i<names.length; i++) {
+      var user = userFreq[names[i]];
+      var inserted = false;
+      for(var j=0; j<sortedUsers.length; j++) {
+        if(user.num_comments > sortedUsers[j].num_comments) {
+          sortedUsers.splice(j, 0, user);
+          inserted = true;
+          break;
+        }
+      }
+      if(!inserted) {
+        sortedUsers.push(user);
+      }
+    }
+    console.log("Num Users " + sortedUsers.length);
+  },
+  enumerateUsersOfThreads: function(userFrequencies) {
+    var userList = {};
     for(var i=0; i<userFrequencies.length; i++) {
       var userFreq = userFrequencies[i];
       var userNames = Object.keys(userFreq);
       for(var j=0; j<userNames.length; j++) {
         var name = userNames[j];
-        if(this.userFreq.hasOwnProperty(name)) {
-          this.userFreq[name] += userFreq[name];
+        if(userList.hasOwnProperty(name)) {
+          userList[name].num_comments += userFreq[name];
         }
         else {
-          this.userFreq[name] = userFreq[name];
+          userList[name] = new User(name, userFreq[name]);
         }
       }
     }
-    console.log("Num Users = " + Object.keys(this.userFreq).length)
+    this.sortUsersByComment(userList);
   }
 }
 
