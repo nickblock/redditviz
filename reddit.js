@@ -1,10 +1,45 @@
 const https = require('./http_module');
-const thisIsReddit = 'https://www.reddit.com/';
 
+const thisIsReddit = 'https://www.reddit.com/';
+const count_users = 100;
 
 User = function(name, comments) {
   this.name = name;
   this.num_comments = comments;
+}
+User.prototype = {
+  getUrl: function(name) {
+    return thisIsReddit + "user/" + name + "/.json";
+  },
+  asyncProcess: function() {
+    
+    var obj = this;
+
+    return new Promise(function(resolve, reject) {
+      
+      https.GetUrlPromise(obj.getUrl(obj.name)).then(comment_list => {
+       resolve(obj.parse(comment_list)); 
+      }).catch(err => {
+        reject(err.message);
+      });
+    });
+  },
+  parse: function(comment_list) {
+    var subreddit_freq = {}
+    var children = comment_list.data.children;
+    if(children !== undefined) {
+      for(var i=0; i<children.length; i++) {
+        var subreddit = children[i].data.subreddit;
+        if(subreddit_freq.hasOwnProperty(subreddit)) {
+          subreddit_freq[subreddit]++;
+        }
+        else {
+          subreddit_freq[subreddit] = 1;
+        }
+      }
+    }
+    return subreddit_freq;
+  }
 }
 Comment = function(user) {
   this.user = user;
@@ -84,34 +119,45 @@ Subreddit = function(title) {
   this.title = title;
   this.threads = [];
   this.userFreq = {};
-
-  this.parse();
 }
 Subreddit.prototype = {
 
-  getUrl: function() {
-    return thisIsReddit + "r/" + this.title + '/.json?limit=200';
+  getUrl: function(title) {
+    return thisIsReddit + "r/" + title + '/.json?limit=200';
   },
-  parse: function() {
-    https.GetUrlPromise(this.getUrl()).then(response => {
+  asyncProcess: function() {
 
-      console.log('got ' + this.title + " t=" + response.data.children.length);
-
-      var threadParseList = [];
-      for(var i=0; i<response.data.children.length; i++) {
-        var child = response.data.children[i];
-
-        var thread = new Thread(child.data.permalink);
-        threadParseList.push(thread.asyncProcess());
-        this.threads.push(thread);
-      }
-      Promise.all(threadParseList).then(userFrequencies => {
-        this.enumerateUsersOfThreads(userFrequencies);
-      })
+    https.GetUrlPromise(this.getUrl(this.title)).then(response => {
+      this.parse(response);
     })
     .catch(function(err) {
       console.log(err.message);
     });
+  },
+  parse: function(response) {
+    
+    console.log('got ' + this.title + " t=" + response.data.children.length);
+  
+    var threadParseList = [];
+    for(var i=0; i<response.data.children.length; i++) {
+      var child = response.data.children[i];
+  
+      var thread = new Thread(child.data.permalink);
+      threadParseList.push(thread.asyncProcess());
+      this.threads.push(thread);
+    }
+    Promise.all(threadParseList).then(userFrequencies => {
+      this.enumerateUserSubreddits(
+        this.enumerateUsersOfThreads(userFrequencies)
+      );
+    });
+  },
+  enumerateUserSubreddits(user_list) {
+    var count = user_list.length < count_users ? user_list.length : count_users;
+    var user_subreddit_freq = {};
+    for(var i=0; i<count; i++) {
+      user_list[i].asyncProcess();
+    }
   },
   sortUsersByComment: function(userFreq) {
 
@@ -131,7 +177,7 @@ Subreddit.prototype = {
         sortedUsers.push(user);
       }
     }
-    console.log("Num Users " + sortedUsers.length);
+    return sortedUsers;
   },
   enumerateUsersOfThreads: function(userFrequencies) {
     var userList = {};
@@ -148,7 +194,7 @@ Subreddit.prototype = {
         }
       }
     }
-    this.sortUsersByComment(userList);
+    return this.sortUsersByComment(userList);
   }
 }
 
