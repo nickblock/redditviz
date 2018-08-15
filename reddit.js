@@ -1,3 +1,4 @@
+const NameCountList = require("./name_count").NameCountList;
 const https = require('./http_module');
 
 const thisIsReddit = 'https://www.reddit.com/';
@@ -18,24 +19,27 @@ User.prototype = {
     return new Promise(function(resolve, reject) {
       
       https.GetUrlPromise(obj.getUrl(obj.name)).then(comment_list => {
-       resolve(obj.parse(comment_list)); 
+       resolve(obj.parseSubreddits(comment_list)); 
       }).catch(err => {
         reject(err.message);
       });
     });
   },
-  parse: function(comment_list) {
-    var subreddit_freq = {}
+  parseSubreddits: function(comment_list) {
+
+    var subreddit_freq = new NameCountList();
+
+    console.log("recv " + this.getUrl(this.name));
+
+    if(comment_list.data === undefined) {
+      return;
+    }
+
     var children = comment_list.data.children;
     if(children !== undefined) {
       for(var i=0; i<children.length; i++) {
         var subreddit = children[i].data.subreddit;
-        if(subreddit_freq.hasOwnProperty(subreddit)) {
-          subreddit_freq[subreddit]++;
-        }
-        else {
-          subreddit_freq[subreddit] = 1;
-        }
+        subreddit_freq.add(subreddit, 1);
       }
     }
     return subreddit_freq;
@@ -49,6 +53,7 @@ Comment.prototype = {
 }
 var IsComment = function(data) {
   if(data.author != undefined &&
+      data.author != "[deleted]" && 
       data.body != undefined) {
         return true;
       }
@@ -60,8 +65,7 @@ Thread = function(permalink) {
   // console.log("Init " + permalink);
 
   this.permalink = permalink;
-  this.comments = [];
-  this.userFreq = {};
+  this.userFreq = new NameCountList();
 
 }
 Thread.prototype = {
@@ -69,7 +73,7 @@ Thread.prototype = {
   getUrl: function() {
     return thisIsReddit + this.permalink + '/.json'
   },
-  parse: function(comment_tree) {
+  parseComments: function(comment_tree) {
 
     var children = comment_tree[1].data.children;
     for(var i=0; i<children.length; i++) {
@@ -84,7 +88,7 @@ Thread.prototype = {
     return new Promise(function(resolve, reject) {
       
       https.GetUrlPromise(obj.getUrl()).then(comment_tree => {
-        resolve(obj.parse(comment_tree));
+        resolve(obj.parseComments(comment_tree));
       }).catch(function (err) {
         reject(err.message);
       });
@@ -93,17 +97,9 @@ Thread.prototype = {
   recurseData: function(data) {
 
     if(IsComment(data)) {
-      var comment = new Comment(data.author);
-      this.comments.push(comment);
-      if(this.userFreq.hasOwnProperty(comment.user)) {
-        this.userFreq[comment.user]++;
-      }
-      else {
-        this.userFreq[comment.user] = 1;
-      }
+      this.userFreq.add(data.author, 1);
     }
-
-    // var children = data.replies;
+    
     if(data.replies != undefined && data.replies != "") {
       var children = data.replies.data.children;
       for(var i=0; i<children.length; i++) {
@@ -117,8 +113,7 @@ Thread.prototype = {
 Subreddit = function(title) {
 
   this.title = title;
-  this.threads = [];
-  this.userFreq = {};
+  this.userFreq = new NameCountList();
 }
 Subreddit.prototype = {
 
@@ -128,13 +123,13 @@ Subreddit.prototype = {
   asyncProcess: function() {
 
     https.GetUrlPromise(this.getUrl(this.title)).then(response => {
-      this.parse(response);
+      this.parseThreads(response);
     })
     .catch(function(err) {
       console.log(err.message);
     });
   },
-  parse: function(response) {
+  parseThreads: function(response) {
     
     console.log('got ' + this.title + " t=" + response.data.children.length);
   
@@ -144,7 +139,6 @@ Subreddit.prototype = {
   
       var thread = new Thread(child.data.permalink);
       threadParseList.push(thread.asyncProcess());
-      this.threads.push(thread);
     }
     Promise.all(threadParseList).then(userFrequencies => {
       this.enumerateUserSubreddits(
@@ -154,47 +148,28 @@ Subreddit.prototype = {
   },
   enumerateUserSubreddits(user_list) {
     var count = user_list.length < count_users ? user_list.length : count_users;
-    var user_subreddit_freq = {};
+    var userParseList = [];
     for(var i=0; i<count; i++) {
-      user_list[i].asyncProcess();
+      var user = new User(user_list[i].name, user_list[i].count);
+      userParseList.push(user.asyncProcess());
     }
-  },
-  sortUsersByComment: function(userFreq) {
-
-    var sortedUsers = [];
-    var names = Object.keys(userFreq);
-    for(var i=0; i<names.length; i++) {
-      var user = userFreq[names[i]];
-      var inserted = false;
-      for(var j=0; j<sortedUsers.length; j++) {
-        if(user.num_comments > sortedUsers[j].num_comments) {
-          sortedUsers.splice(j, 0, user);
-          inserted = true;
-          break;
+    Promise.all(userParseList).then(user_subs => {
+      var mergeSubredditList = new NameCountList();
+      for(var i=0; i<user_subs.length; i++) {
+        if(user_subs[i] !== undefined) {
+          mergeSubredditList.merge(user_subs[i]);
         }
       }
-      if(!inserted) {
-        sortedUsers.push(user);
-      }
-    }
-    return sortedUsers;
+      var sortedSubs = mergeSubredditList.get_sorted();
+      console.log("user subs");
+    })
   },
   enumerateUsersOfThreads: function(userFrequencies) {
-    var userList = {};
+    var userList = new NameCountList();
     for(var i=0; i<userFrequencies.length; i++) {
-      var userFreq = userFrequencies[i];
-      var userNames = Object.keys(userFreq);
-      for(var j=0; j<userNames.length; j++) {
-        var name = userNames[j];
-        if(userList.hasOwnProperty(name)) {
-          userList[name].num_comments += userFreq[name];
-        }
-        else {
-          userList[name] = new User(name, userFreq[name]);
-        }
-      }
+      userList.merge(userFrequencies[i]);
     }
-    return this.sortUsersByComment(userList);
+    return userList.get_sorted()
   }
 }
 
