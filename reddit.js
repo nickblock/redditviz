@@ -29,8 +29,6 @@ User.prototype = {
 
     var subreddit_freq = new NameCountList();
 
-    console.log("recv " + this.getUrl(this.name));
-
     if(comment_list.data === undefined) {
       return;
     }
@@ -45,12 +43,7 @@ User.prototype = {
     return subreddit_freq;
   }
 }
-Comment = function(user) {
-  this.user = user;
-}
-Comment.prototype = {
 
-}
 var IsComment = function(data) {
   if(data.author != undefined &&
       data.author != "[deleted]" && 
@@ -61,8 +54,6 @@ var IsComment = function(data) {
 }
 
 Thread = function(permalink) {
-
-  // console.log("Init " + permalink);
 
   this.permalink = permalink;
   this.userFreq = new NameCountList();
@@ -114,20 +105,32 @@ Subreddit = function(title) {
 
   this.title = title;
   this.userFreq = new NameCountList();
+  this.sortedSubs = undefined;
 }
 Subreddit.prototype = {
 
   getUrl: function(title) {
     return thisIsReddit + "r/" + title + '/.json?limit=200';
   },
-  asyncProcess: function() {
+  asyncProcess: async function() {
 
-    https.GetUrlPromise(this.getUrl(this.title)).then(response => {
-      this.parseThreads(response);
-    })
-    .catch(function(err) {
+    try {
+      //Fetch the subreddits main thread page
+      let response = await https.GetUrlPromise(this.getUrl(this.title));
+      //parse all the user comments of those threads, totalling up the users by frequency of comments
+      let userFrequencies = await this.parseThreads(response);
+      let enumUsers = this.enumerateUsersOfThreads(userFrequencies);
+      //go through each user, totalling up thier comments of other subreddits
+      let userSubreddits = await this.enumerateUserSubreddits(enumUsers);
+      //merge those subreddits into a frequency count
+      let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
+      
+      return mergeSubredditList;
+      //this.enumerateUsersOfThreads(mergeSubredditList.get_sorted());
+    }
+    catch (err) {
       console.log(err.message);
-    });
+    }
   },
   parseThreads: function(response) {
     
@@ -140,29 +143,25 @@ Subreddit.prototype = {
       var thread = new Thread(child.data.permalink);
       threadParseList.push(thread.asyncProcess());
     }
-    Promise.all(threadParseList).then(userFrequencies => {
-      this.enumerateUserSubreddits(
-        this.enumerateUsersOfThreads(userFrequencies)
-      );
-    });
+    return Promise.all(threadParseList);
   },
-  enumerateUserSubreddits(user_list) {
+  enumerateUserSubreddits: function(user_list) {
     var count = user_list.length < count_users ? user_list.length : count_users;
     var userParseList = [];
     for(var i=0; i<count; i++) {
       var user = new User(user_list[i].name, user_list[i].count);
       userParseList.push(user.asyncProcess());
     }
-    Promise.all(userParseList).then(user_subs => {
-      var mergeSubredditList = new NameCountList();
-      for(var i=0; i<user_subs.length; i++) {
-        if(user_subs[i] !== undefined) {
-          mergeSubredditList.merge(user_subs[i]);
-        }
+    return Promise.all(userParseList);
+  },
+  mergeUserSubreddits: function(user_subs) {
+    var mergeSubredditList = new NameCountList();
+    for(var i=0; i<user_subs.length; i++) {
+      if(user_subs[i] !== undefined) {
+        mergeSubredditList.merge(user_subs[i]);
       }
-      var sortedSubs = mergeSubredditList.get_sorted();
-      console.log("user subs");
-    })
+    }
+    return mergeSubredditList.get_sorted();
   },
   enumerateUsersOfThreads: function(userFrequencies) {
     var userList = new NameCountList();
@@ -170,6 +169,18 @@ Subreddit.prototype = {
       userList.merge(userFrequencies[i]);
     }
     return userList.get_sorted()
+  },
+  printSortedSubs: async function() {
+
+    let sortedSubs = await this.asyncProcess();
+    // var sortedSubs = this.asyncProcess()
+    for(var i=0; i<sortedSubs.length; i++) {
+      var sub = sortedSubs[i];
+      if(sub.count <= 1)  {
+        break;
+      }
+      console.log(sub.name + " " + sub.count);
+    }
   }
 }
 
