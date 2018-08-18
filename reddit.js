@@ -12,18 +12,17 @@ User.prototype = {
   getUrl: function(name) {
     return thisIsReddit + "user/" + name + "/.json";
   },
-  asyncProcess: function() {
+  asyncProcess: async function() {
     
-    var obj = this;
+    try {
+      let user_comments = await https.GetUrlPromise(this.getUrl(this.name));
+      let subreddits = this.parseSubreddits(user_comments);
 
-    return new Promise(function(resolve, reject) {
-      
-      https.GetUrlPromise(obj.getUrl(obj.name)).then(comment_list => {
-       resolve(obj.parseSubreddits(comment_list)); 
-      }).catch(err => {
-        reject(err.message);
-      });
-    });
+      return subreddits;
+    }
+    catch (err) {
+      console.log(err.message);
+    }
   },
   parseSubreddits: function(comment_list) {
 
@@ -115,18 +114,18 @@ Subreddit.prototype = {
   asyncProcess: async function() {
 
     try {
-      //Fetch the subreddits main thread page
+      //Fetch this subreddits main thread page
       let response = await https.GetUrlPromise(this.getUrl(this.title));
       //parse all the user comments of those threads, totalling up the users by frequency of comments
       let userFrequencies = await this.parseThreads(response);
       let enumUsers = this.enumerateUsersOfThreads(userFrequencies);
-      //go through each user, totalling up thier comments of other subreddits
+      //go through each user, totalling up thier comments on other subreddits
       let userSubreddits = await this.enumerateUserSubreddits(enumUsers);
       //merge those subreddits into a frequency count
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
+      //this is the list of subreddits most frequnted by users of this subreddit
       return mergeSubredditList;
-      //this.enumerateUsersOfThreads(mergeSubredditList.get_sorted());
     }
     catch (err) {
       console.log(err.message);
