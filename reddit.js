@@ -4,13 +4,12 @@ const https = require('./http_module');
 const thisIsReddit = 'https://www.reddit.com/';
 const count_users = 100;
 
-User = function(name, comments) {
+User = function(name) {
   this.name = name;
-  this.num_comments = comments;
 }
 User.prototype = {
   getUrl: function(name) {
-    return thisIsReddit + "user/" + name + "/.json";
+    return thisIsReddit + "user/" + name + "/.json?limit=100";
   },
   asyncProcess: async function() {
     
@@ -40,8 +39,19 @@ User.prototype = {
       }
     }
     return subreddit_freq;
+  },
+  printSubreddits: async function() {
+    let subreddits = await this.asyncProcess();
+    let sorted = subreddits.get_sorted();
+    for(var i=0; i<sorted.length; i++) {
+      var sub = sorted[i];
+      if(sub.count <= 1) {
+        break;
+      }
+      console.log(sub.name + " " + sub.count);
+    }
   }
-}
+ }
 
 var IsComment = function(data) {
   if(data.author != undefined &&
@@ -148,7 +158,7 @@ Subreddit.prototype = {
     var count = user_list.length < count_users ? user_list.length : count_users;
     var userParseList = [];
     for(var i=0; i<count; i++) {
-      var user = new User(user_list[i].name, user_list[i].count);
+      var user = new User(user_list[i].name);
       userParseList.push(user.asyncProcess());
     }
     return Promise.all(userParseList);
@@ -184,4 +194,5 @@ Subreddit.prototype = {
 }
 
 module.exports.Subreddit = Subreddit;
+module.exports.User = User;
 module.exports.Thread = Thread;
