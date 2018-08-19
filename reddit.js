@@ -17,7 +17,7 @@ User.prototype = {
       let user_comments = await https.GetUrlPromise(this.getUrl(this.name));
       let subreddits = this.parseSubreddits(user_comments);
 
-      return subreddits;
+      return subreddits.get_sorted();
     }
     catch (err) {
       console.log(err.message);
@@ -41,10 +41,9 @@ User.prototype = {
     return subreddit_freq;
   },
   printSubreddits: async function() {
-    let subreddits = await this.asyncProcess();
-    let sorted = subreddits.get_sorted();
-    for(var i=0; i<sorted.length; i++) {
-      var sub = sorted[i];
+    let subreddits = await this.getSubreddits();
+    for(var i=0; i<subreddits.length; i++) {
+      var sub = subreddits[i];
       if(sub.count <= 1) {
         break;
       }
@@ -132,7 +131,7 @@ Subreddit.prototype = {
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
       //this is the list of subreddits most frequnted by users of this subreddit
-      return mergeSubredditList;
+      return mergeSubredditList.get_sorted();
     }
     catch (err) {
       console.log(err.message);
@@ -167,7 +166,7 @@ Subreddit.prototype = {
         mergeSubredditList.merge(user_subs[i]);
       }
     }
-    return mergeSubredditList.get_sorted();
+    return mergeSubredditList;
   },
   enumerateUsersOfThreads: function(userFrequencies) {
     var userList = new NameCountList();
@@ -178,10 +177,10 @@ Subreddit.prototype = {
   },
   printSortedSubs: async function() {
 
-    let sortedSubs = await this.getSubreddits();
-    // var sortedSubs = this.asyncProcess()
-    for(var i=0; i<sortedSubs.length; i++) {
-      var sub = sortedSubs[i];
+    let subreddits = await this.getSubreddits();
+    // var subreddits = this.asyncProcess()
+    for(var i=0; i<subreddits.length; i++) {
+      var sub = subreddits[i];
       if(sub.count <= 1)  {
         break;
       }

@@ -2,9 +2,8 @@ const https = require("https");
 const reddit = require("./reddit");
 
 
-// subreddit = new reddit.Subreddit('britishproblems');
+subreddit = new reddit.Subreddit('britishproblems');
+subreddit.printSortedSubs();
 
-// subreddit.printSortedSubs();
-
-user = new reddit.User("sega_gamegear");
-user.printSubreddits();
+// user = new reddit.User("sega_gamegear");
+// user.printSubreddits();
