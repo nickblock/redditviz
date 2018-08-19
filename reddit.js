@@ -11,7 +11,7 @@ User.prototype = {
   getUrl: function(name) {
     return thisIsReddit + "user/" + name + "/.json?limit=100";
   },
-  asyncProcess: async function() {
+  getSubreddits: async function() {
     
     try {
       let user_comments = await https.GetUrlPromise(this.getUrl(this.name));
@@ -81,18 +81,15 @@ Thread.prototype = {
     }
     return this.userFreq;
   },
-  asyncProcess: function() {
+  getUserFreq: async function() {
 
-    var obj = this;
-
-    return new Promise(function(resolve, reject) {
-      
-      https.GetUrlPromise(obj.getUrl()).then(comment_tree => {
-        resolve(obj.parseComments(comment_tree));
-      }).catch(function (err) {
-        reject(err.message);
-      });
-    })
+    try {
+      let comment_tree = await https.GetUrlPromise(this.getUrl());
+      return this.parseComments(comment_tree);
+    }
+    catch (err) {
+      console.log(err.message);
+    }
   },
   recurseData: function(data) {
 
@@ -121,7 +118,7 @@ Subreddit.prototype = {
   getUrl: function(title) {
     return thisIsReddit + "r/" + title + '/.json?limit=200';
   },
-  asyncProcess: async function() {
+  getSubreddits: async function() {
 
     try {
       //Fetch this subreddits main thread page
@@ -150,7 +147,7 @@ Subreddit.prototype = {
       var child = response.data.children[i];
   
       var thread = new Thread(child.data.permalink);
-      threadParseList.push(thread.asyncProcess());
+      threadParseList.push(thread.getUserFreq());
     }
     return Promise.all(threadParseList);
   },
@@ -159,7 +156,7 @@ Subreddit.prototype = {
     var userParseList = [];
     for(var i=0; i<count; i++) {
       var user = new User(user_list[i].name);
-      userParseList.push(user.asyncProcess());
+      userParseList.push(user.getSubreddits());
     }
     return Promise.all(userParseList);
   },
@@ -181,7 +178,7 @@ Subreddit.prototype = {
   },
   printSortedSubs: async function() {
 
-    let sortedSubs = await this.asyncProcess();
+    let sortedSubs = await this.getSubreddits();
     // var sortedSubs = this.asyncProcess()
     for(var i=0; i<sortedSubs.length; i++) {
       var sub = sortedSubs[i];
