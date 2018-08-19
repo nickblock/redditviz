@@ -6,11 +6,19 @@ const reddit = require("./reddit");
 var server_port = 3000;
 
 app.get("/r/:id", function(req, res) {
-    res.json({reddit: req.params.id});
+
+    var sub = new reddit.Subreddit(req.params.id);
+    sub.getSubreddits().then(subreddits => {
+        res.json(subreddits);
+    });
 });
 
 app.get("/u/:id", function(req, res) {
-    res.json({user: req.params.id});
+    
+    var user = new reddit.User(req.params.id);
+    user.getSubreddits().then(subreddits => {
+        res.json(subreddits);
+    });
 });
 
 app.get("/", function(req, res) {
