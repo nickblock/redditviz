@@ -16,8 +16,8 @@ User.prototype = {
     try {
       let user_comments = await https.GetUrlPromise(this.getUrl(this.name));
       let subreddits = this.parseSubreddits(user_comments);
-
-      return subreddits.get_sorted();
+      
+      return subreddits;
     }
     catch (err) {
       console.log(err.message);
@@ -130,7 +130,7 @@ Subreddit.prototype = {
       //merge those subreddits into a frequency count
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
-      //this is the list of subreddits most frequnted by users of this subreddit
+      //this is the list of other subreddits most frequnted by users of this subreddit
       return mergeSubredditList.get_sorted();
     }
     catch (err) {
