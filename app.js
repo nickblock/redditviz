@@ -14,9 +14,13 @@ var remove_json = function(input) {
     }
     return undefined;
 }
+var re = /^[\w_]{3,20}$/;
+var valid_redditname = function(input) {
+    return re.exec(input);
+}
 var is_valid_input = function(input) {
     input = remove_json(input);
-    if(input && validator.isAlphanumeric(input)) {
+    if(input && valid_redditname(input)) {
         return input;
     }
     return undefined;
@@ -32,7 +36,7 @@ app.get("/r/:id", function(req, res) {
 
         var sub = new reddit.Subreddit(input);
         sub.getSubreddits().then(subreddits => {
-            res.json(subreddits);
+            res.json(subreddits.to_chart_js(input));
         });
     }
     else {
@@ -49,7 +53,7 @@ app.get("/u/:id", function(req, res) {
 
         var user = new reddit.User(input);
         user.getSubreddits().then(subreddits => {
-            res.json(subreddits);
+            res.json(subreddits.to_chart_js(input));
         });
     }
     else {

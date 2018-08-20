@@ -19,7 +19,6 @@ NameCountList.prototype = {
     }
   },
   get_sorted: function() {
-    
     var sortedItems = [];
     var names = Object.keys(this.items);
     for(var i=0; i<names.length; i++) {
@@ -38,7 +37,35 @@ NameCountList.prototype = {
       }
     }
     return sortedItems;
-
+  },
+  to_chart_js: function(label) {
+    var sorted = this.get_sorted();
+    var labels = [], data = [];
+    for(var i=1; i<10; i++) {
+      var item = sorted[i];
+      labels.push(item.name);
+      data.push(item.count);
+    }
+    return {
+      type: 'bar',
+      data: {
+          labels: labels,
+          datasets: [{
+              label: label,
+              data: data,
+              borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+              yAxes: [{
+                  ticks: {
+                      beginAtZero:true
+                  }
+              }]
+          }
+      }
+    }
   }
 }
 

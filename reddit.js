@@ -131,7 +131,7 @@ Subreddit.prototype = {
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
       //this is the list of other subreddits most frequnted by users of this subreddit
-      return mergeSubredditList.get_sorted();
+      return mergeSubredditList;
     }
     catch (err) {
       console.log(err.message);
