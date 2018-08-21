@@ -28,6 +28,13 @@ var is_valid_input = function(input) {
 var return_html = function(res) {
     res.sendFile(path.join(__dirname + '/public/chart.html'));
 }
+
+var subreddit_message = function(input) {
+    return "This graph shows the most commented on subreddits by users of " + input;
+}
+var user_message = function(input) {
+    return "Most commneted on subreddits of user " + input;
+}
 app.get("/r/:id", function(req, res) {
 
     var input = is_valid_input(req.params.id);
@@ -36,7 +43,12 @@ app.get("/r/:id", function(req, res) {
 
         var sub = new reddit.Subreddit(input);
         sub.getSubreddits().then(subreddits => {
-            res.json(subreddits.to_chart_js(input));
+            res.json({chart: subreddits.to_chart_js(input),
+                    message: subreddit_message(input) }
+            );
+        })
+        .catch(err => {
+            res.json({message: "subreddit " + input + " not found"});
         });
     }
     else {
@@ -53,7 +65,12 @@ app.get("/u/:id", function(req, res) {
 
         var user = new reddit.User(input);
         user.getSubreddits().then(subreddits => {
-            res.json(subreddits.to_chart_js(input));
+            res.json({chart: subreddits.to_chart_js(input),
+                message: user_message(input) }
+            );
+        })
+        .catch(err => {
+            res.json({message: "user " + input + " not found"});
         });
     }
     else {

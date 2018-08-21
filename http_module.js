@@ -28,19 +28,24 @@ module.exports.GetUrlPromise = function(url) {
             else {
                 https.get(url, (resp) => {
                     let data = ''
-                
+                    
                     resp.on('data', (chunk) => {
                         data += chunk;
                     })
                     
                     resp.on('end', () => {
-                        fs.writeFileSync(cache_file, data);
-                        resolve(JSON.parse(data));
+                        try {
+                            resolve(JSON.parse(data));
+                            fs.writeFileSync(cache_file, data);
+                        }
+                        catch (err) {
+                            reject(err.message);
+                        }
                     });
                 
-                    }).on("error", (err) => {
+                }).on("error", (err) => {
                     re1ect(err);
-                    });
+                });
             }
         });
     }) 

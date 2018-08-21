@@ -134,7 +134,7 @@ Subreddit.prototype = {
       return mergeSubredditList;
     }
     catch (err) {
-      console.log(err.message);
+      throw err;
     }
   },
   parseThreads: function(response) {
