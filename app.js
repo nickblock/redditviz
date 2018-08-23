@@ -1,10 +1,8 @@
-var express = require('express')
-var app = express();
-var http = require('http').Server(app);
-var path = require('path');
-var validator = require("validator");
+const express = require('express')
+const app = express();
+const http = require('http').Server(app);
+const path = require('path');
 const reddit = require("./reddit");
-const html = require("./html.js")
 
 var server_port = 3000;
 
@@ -29,11 +27,14 @@ var return_html = function(res) {
     res.sendFile(path.join(__dirname + '/public/chart.html'));
 }
 
+var title_styling = function(input) {
+    return input;
+}
 var subreddit_message = function(input) {
-    return "This graph shows the most commented on subreddits by users of " + input;
+    return title_styling("This graph shows the most commented on subreddits by users of " + input)
 }
 var user_message = function(input) {
-    return "Most commneted on subreddits of user " + input;
+    return title_styling("Most commneted on subreddits of user " + input);
 }
 app.get("/r/:id", function(req, res) {
 
@@ -43,12 +44,12 @@ app.get("/r/:id", function(req, res) {
 
         var sub = new reddit.Subreddit(input);
         sub.getSubreddits().then(subreddits => {
-            res.json({chart: subreddits.to_chart_js(input),
-                    message: subreddit_message(input) }
+            res.json({  chart: subreddits.to_chart_js(input),
+                        message: subreddit_message(input) }       
             );
         })
         .catch(err => {
-            res.json({message: "subreddit " + input + " not found"});
+            res.json({message: title_styling("subreddit " + input + " not found")});
         });
     }
     else {
@@ -65,12 +66,12 @@ app.get("/u/:id", function(req, res) {
 
         var user = new reddit.User(input);
         user.getSubreddits().then(subreddits => {
-            res.json({chart: subreddits.to_chart_js(input),
-                message: user_message(input) }
+            res.json({  chart: subreddits.to_chart_js(input),
+                        message: user_message(input) }
             );
         })
         .catch(err => {
-            res.json({message: "user " + input + " not found"});
+            res.json({message: title_styling("user " + input + " not found")});
         });
     }
     else {
