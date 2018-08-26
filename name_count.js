@@ -41,7 +41,7 @@ NameCountList.prototype = {
   to_chart_js: function(label) {
     var sorted = this.get_sorted();
     var labels = [], data = [];
-    for(var i=1; i<10; i++) {
+    for(var i=1; i<20; i++) {
       var item = sorted[i];
       labels.push(item.name);
       data.push(item.count);
