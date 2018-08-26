@@ -15,11 +15,12 @@
 </head>
 
 <body>
-	<div id="container" style="width: 75%;">
+	<div id="container" style="width: 100%;">
         <div id="message"></div> 
 		<canvas id="canvas"></canvas>
 	</div>
 	<script>
+
         var data_labels;
         document.getElementById('canvas').onclick = function(evt) {
             var activePoints = window.reddit_graph.getElementsAtEvent(evt);
@@ -34,13 +35,14 @@
             return remove_proto.substr(first_slash, remove_proto.length - first_slash); 
         }
         var create_url_from_search = function(search) {
-            return "http://localhost:3000/" + search + ".json";
+            return "http://localhost:3000/" + search;
         }
         var display_message = function(input) {
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
 
         var fetch_graph = function(search) {
+
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -51,14 +53,15 @@
                     }
                     if(resp.chart) {
                         data_labels = resp.chart.data.labels
-                        resp.chart.options
                         var ctx = document.getElementById('canvas').getContext('2d');
                         window.reddit_graph = new Chart(ctx, resp.chart);
                     }
                 }
             };
+            var url = create_url_from_search(search);
+            window.history.pushState(undefined, "Title", url);
             display_message("Fetching " + search);
-            xhttp.open("GET", create_url_from_search(search), true);
+            xhttp.open("GET", url+".json", true);
             xhttp.send();
         }
 
