@@ -20,16 +20,27 @@
 		<canvas id="canvas"></canvas>
 	</div>
 	<script>
+        var data_labels;
+        document.getElementById('canvas').onclick = function(evt) {
+            var activePoints = window.reddit_graph.getElementsAtEvent(evt);
+            if(activePoints.length) {
+                fetch_graph("r/" + data_labels[activePoints[0]._datasetIndex]);
+            }
+        }
 
         var get_relevant_search_from_address = function() {
-            var output = window.location.href.replace(window.location.protocol, ""); 
-            return output.replace(window.location.hostname, "");
+            var remove_proto = window.location.href.replace("http://", "");
+            var first_slash = remove_proto.indexOf("/") +1;
+            return remove_proto.substr(first_slash, remove_proto.length - first_slash); 
+        }
+        var create_url_from_search = function(search) {
+            return "http://localhost:3000/" + search + ".json";
         }
         var display_message = function(input) {
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
 
-		window.onload = function() {
+        var fetch_graph = function(search) {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -39,14 +50,20 @@
                         display_message(resp.message);
                     }
                     if(resp.chart) {
+                        data_labels = resp.chart.data.labels
+                        resp.chart.options
                         var ctx = document.getElementById('canvas').getContext('2d');
-                        window.myChart = new Chart(ctx, resp.chart);
+                        window.reddit_graph = new Chart(ctx, resp.chart);
                     }
                 }
             };
-            display_message("Fetching " + get_relevant_search_from_address());
-            xhttp.open("GET", window.location.href + ".json", true);
+            display_message("Fetching " + search);
+            xhttp.open("GET", create_url_from_search(search), true);
             xhttp.send();
+        }
+
+		window.onload = function() {
+            fetch_graph(get_relevant_search_from_address(window.location.href));
 		};
 
 	</script>

@@ -57,6 +57,7 @@ NameCountList.prototype = {
           }]
       },
       options: {
+          events: ["click"],
           scales: {
               yAxes: [{
                   ticks: {
