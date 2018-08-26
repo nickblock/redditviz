@@ -35,7 +35,12 @@ module.exports.GetUrlPromise = function(url) {
                     
                     resp.on('end', () => {
                         try {
-                            resolve(JSON.parse(data));
+                            var json_data = JSON.parse(data); 
+                            if(json_data.error == 400) {
+                                reject(json_data.message);
+                                return;
+                            }
+                            resolve(json_data);
                             fs.writeFileSync(cache_file, data);
                         }
                         catch (err) {
