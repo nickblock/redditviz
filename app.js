@@ -31,7 +31,7 @@ var title_styling = function(input) {
     return input;
 }
 var subreddit_message = function(input) {
-    return title_styling("This graph shows the most commented on subreddits by users of " + input)
+    return title_styling("This graph shows the other most commented on subreddits by the users of " + input)
 }
 var user_message = function(input) {
     return title_styling("Most commneted on subreddits of user " + input);
