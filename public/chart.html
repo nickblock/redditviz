@@ -24,7 +24,7 @@
         document.getElementById('canvas').onclick = function(evt) {
             var activePoints = window.reddit_graph.getElementsAtEvent(evt);
             if(activePoints.length) {
-                fetch_graph("r/" + data_labels[activePoints[0]._datasetIndex]);
+                fetch_graph("r/" + activePoints[0]._model.label);
             }
         }
 
