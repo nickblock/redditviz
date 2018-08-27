@@ -1,6 +1,5 @@
-const https = require('https');
 const fs = require('fs');
-const validUrl = require('valid-url')
+const fetch = require("node-fetch");
 
 const cache_dir = "cache/"
 var convSlashToSpace = function(url) {
@@ -15,45 +14,32 @@ var getCacheFilePath = function(url) {
     return getcacheDir() + convSlashToSpace(url) + ".txt";
 }
 
-module.exports.GetUrlPromise = function(url) {
+var do_get = async function(url) {
 
-    return new Promise(function(resolve, reject) {
-        
-        if(!validUrl.isUri(url)) {
-            reject("Invalid URL");
-            return;
+    try {
+        const response = await fetch(url);
+        const json_data = await response.json();
+    
+        if(json_data.error == 400) {
+            throw new Error(json_data.message);
         }
-        var cache_file = getCacheFilePath(url);
-        try {
-            resolve(JSON.parse(fs.readFileSync(cache_file)));
-            return;
-        }
-        catch (err) {
-            https.get(url, (resp) => {
-                let data = ''
-                
-                resp.on('data', (chunk) => {
-                    data += chunk;
-                })
-                
-                resp.on('end', () => {
-                    try {
-                        var json_data = JSON.parse(data); 
-                        if(json_data.error == 400) {
-                            reject(json_data.message);
-                            return;
-                        }
-                        resolve(json_data);
-                        fs.writeFileSync(cache_file, data);
-                    }
-                    catch (err) {
-                        reject(err.message);
-                    }
-                });
-            
-            }).on("error", (err) => {
-                re1ect(err);
-            });
-        }
-    });
+        fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
+        return (json_data);
+    }
+    catch (err) {
+        throw new Error(err.message)
+    }
+
+}
+
+module.exports.GetUrl = async function(url) {
+
+    try {
+        return JSON.parse(
+            fs.readFileSync(
+                getCacheFilePath(url)));
+    }
+    catch (err) {
+        return await do_get(url);
+    }
 }

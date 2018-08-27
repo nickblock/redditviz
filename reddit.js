@@ -14,7 +14,7 @@ User.prototype = {
   getSubreddits: async function() {
     
     try {
-      let user_comments = await https.GetUrlPromise(this.getUrl(this.name));
+      let user_comments = await https.GetUrl(this.getUrl(this.name));
       let subreddits = this.parseSubreddits(user_comments);
       
       return subreddits;
@@ -83,7 +83,7 @@ Thread.prototype = {
   getUserFreq: async function() {
 
     try {
-      let comment_tree = await https.GetUrlPromise(this.getUrl());
+      let comment_tree = await https.GetUrl(this.getUrl());
       return this.parseComments(comment_tree);
     }
     catch (err) {
@@ -121,7 +121,7 @@ Subreddit.prototype = {
 
     try {
       //Fetch this subreddits main thread page
-      let response = await https.GetUrlPromise(this.getUrl(this.title));
+      let response = await https.GetUrl(this.getUrl(this.title));
       //parse all the user comments of those threads, totalling up the users by frequency of comments
       let userFrequencies = await this.parseThreads(response);
       let enumUsers = this.enumerateUsersOfThreads(userFrequencies);
