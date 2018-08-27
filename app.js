@@ -2,9 +2,12 @@ const express = require('express')
 const app = express();
 const http = require('http').Server(app);
 const path = require('path');
+const fs = require('fs');
 const reddit = require("./reddit");
 
 var server_port = 3000;
+
+global.config = JSON.parse(fs.readFileSync("config.json"));
 
 var remove_json = function(input) {
     if(input.endsWith(".json")) {

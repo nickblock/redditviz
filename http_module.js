@@ -7,7 +7,7 @@ var convSlashToSpace = function(url) {
 }
 
 var getcacheDir = function() {
-    return cache_dir;
+    return global.config.cache_dir;
 }
 
 var getCacheFilePath = function(url) {

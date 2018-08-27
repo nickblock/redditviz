@@ -1,0 +1,7 @@
+{
+    "enum_user_sub_count": 100,
+    "user_comment_limit": 100,
+    "subreddit_thread_limit": 200,
+    "cache_dir": "cache/",
+    "base_reddit_url": "https://www.reddit.com/"
+}

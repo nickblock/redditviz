@@ -1,15 +1,12 @@
 const NameCountList = require("./name_count").NameCountList;
 const https = require('./http_module');
 
-const thisIsReddit = 'https://www.reddit.com/';
-const count_users = 100;
-
 User = function(name) {
   this.name = name;
 }
 User.prototype = {
   getUrl: function(name) {
-    return thisIsReddit + "user/" + name + "/.json?limit=100";
+    return global.config.base_reddit_url + "user/" + name + "/.json?limit=" + global.config.user_comment_limit;
   },
   getSubreddits: async function() {
     
@@ -70,7 +67,7 @@ Thread = function(permalink) {
 Thread.prototype = {
 
   getUrl: function() {
-    return thisIsReddit + this.permalink + '/.json'
+    return global.config.base_reddit_url + this.permalink + '/.json'
   },
   parseComments: function(comment_tree) {
 
@@ -115,7 +112,7 @@ Subreddit = function(title) {
 Subreddit.prototype = {
 
   getUrl: function(title) {
-    return thisIsReddit + "r/" + title + '/.json?limit=200';
+    return global.config.base_reddit_url + "r/" + title + '/.json?limit=' + global.config.subreddit_thread_limit;
   },
   getSubreddits: async function() {
 
@@ -151,7 +148,7 @@ Subreddit.prototype = {
     return Promise.all(threadParseList);
   },
   enumerateUserSubreddits: function(user_list) {
-    var count = user_list.length < count_users ? user_list.length : count_users;
+    var count = user_list.length < global.config.enum_user_sub_count ? user_list.length : global.config.enum_user_sub_count;
     var userParseList = [];
     for(var i=0; i<count; i++) {
       var user = new User(user_list[i].name);
