@@ -14,7 +14,7 @@ var getCacheFilePath = function(url) {
     return getcacheDir() + convSlashToSpace(url) + ".txt";
 }
 
-var do_get = async function(url) {
+var doGet = async function(url) {
 
     try {
         const response = await fetch(url);
@@ -40,6 +40,6 @@ module.exports.GetUrl = async function(url) {
                 getCacheFilePath(url)));
     }
     catch (err) {
-        return await do_get(url);
+        return await doGet(url);
     }
 }
