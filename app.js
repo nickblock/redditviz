@@ -48,7 +48,7 @@ app.get("/r/:id", function(req, res) {
     if(input) {
 
         var sub = new reddit.Subreddit(input);
-        sub.getSubreddits().then(subreddits => {
+        sub.getSubredditsCached().then(subreddits => {
             res.json({  chart: chart.Create(input, subreddits),
                         message: subreddit_message(input) }       
             );

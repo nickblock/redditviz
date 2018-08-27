@@ -9,6 +9,18 @@ User.prototype = {
   getUrl: function(name) {
     return global.config.base_reddit_url + "user/" + name + "/.json?limit=" + global.config.user_comment_limit;
   },
+  getSubredditsCached: async function() {
+    
+    try {
+      var cachedSubs = await cache.GetCache().Get(this.name);
+      return cachedSubs;
+    }
+    catch (err) {
+      var subs = await this.getSubreddits();
+      cache.GetCache().Push(this.name, subs);
+      return subs;
+    }
+  },
   getSubreddits: async function() {
     
     try {
@@ -173,7 +185,7 @@ Subreddit.prototype = {
     var userParseList = [];
     for(var i=0; i<count; i++) {
       var user = new User(user_list[i].name);
-      userParseList.push(user.getSubreddits());
+      userParseList.push(user.getSubredditsCached());
     }
     return Promise.all(userParseList);
   },
