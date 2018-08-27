@@ -50,7 +50,7 @@ User.prototype = {
       console.log(sub.name + " " + sub.count);
     }
   }
- }
+}
 
 var IsComment = function(data) {
   if(data.author != undefined &&
