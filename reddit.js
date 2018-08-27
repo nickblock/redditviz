@@ -171,13 +171,16 @@ Subreddit.prototype = {
   enumerateUsersOfThreads: function(userFrequencies) {
     var userList = new NameCountList();
     for(var i=0; i<userFrequencies.length; i++) {
-      userList.merge(userFrequencies[i]);
+      if(userFrequencies[i] !== undefined) {
+        userList.merge(userFrequencies[i]);
+      }
     }
     return userList.get_sorted()
   },
   printSortedSubs: async function() {
 
     let subreddits = await this.getSubreddits();
+    subreddits = subreddits.get_sorted();
     // var subreddits = this.asyncProcess()
     for(var i=0; i<subreddits.length; i++) {
       var sub = subreddits[i];
