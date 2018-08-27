@@ -4,10 +4,12 @@ const http = require('http').Server(app);
 const path = require('path');
 const fs = require('fs');
 const reddit = require("./reddit");
-
-var server_port = 3000;
+const cache = require("./cache");
+const chart = require("./chart");
 
 global.config = JSON.parse(fs.readFileSync("config.json"));
+
+cache.GetCache();
 
 var remove_json = function(input) {
     if(input.endsWith(".json")) {
@@ -47,7 +49,7 @@ app.get("/r/:id", function(req, res) {
 
         var sub = new reddit.Subreddit(input);
         sub.getSubreddits().then(subreddits => {
-            res.json({  chart: subreddits.to_chart_js(input),
+            res.json({  chart: chart.Create(input, subreddits),
                         message: subreddit_message(input) }       
             );
         })
@@ -69,7 +71,7 @@ app.get("/u/:id", function(req, res) {
 
         var user = new reddit.User(input);
         user.getSubreddits().then(subreddits => {
-            res.json({  chart: subreddits.to_chart_js(input),
+            res.json({  chart: chart.Create(input, subreddits),
                         message: user_message(input) }
             );
         })
@@ -86,9 +88,9 @@ app.get("/", function(req, res) {
     res.json({yo: "redditviz"});
 });
 
-console.log('listen port ' + server_port);
 
 app.use(express.static(__dirname + "/public")); 
 
-http.listen(server_port, function() {} );
+http.listen(global.config.listen_port, function() {} );
+console.log('listen port ' + global.config.listen_port);
 

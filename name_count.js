@@ -12,10 +12,21 @@ NameCountList.prototype = {
     }
   },
   merge: function(otherList) {
-    var names = Object.keys(otherList.items);
-    for(var i=0; i<names.length; i++) {
-      var count = otherList.items[names[i]];
-      this.add(names[i], count);
+    if(otherList.items !== undefined) {
+      var names = Object.keys(otherList.items);
+      for(var i=0; i<names.length; i++) {
+        var count = otherList.items[names[i]];
+        this.add(names[i], count);
+      }
+    }
+    else {
+      this.merge_sorted(otherList);
+    }
+  },
+  merge_sorted: function(otherList) {
+    for(i=0; i<otherList.length; i++) {
+      var item = otherList[i];
+      this.add(item.name, item.count)
     }
   },
   get_sorted: function() {
@@ -37,36 +48,6 @@ NameCountList.prototype = {
       }
     }
     return sortedItems;
-  },
-  to_chart_js: function(label) {
-    var sorted = this.get_sorted();
-    var labels = [], data = [];
-    for(var i=1; i<20; i++) {
-      var item = sorted[i];
-      labels.push(item.name);
-      data.push(item.count);
-    }
-    return {
-      type: 'bar',
-      data: {
-          labels: labels,
-          datasets: [{
-              label: label,
-              data: data,
-              borderWidth: 1
-          }]
-      },
-      options: {
-          events: ["click"],
-          scales: {
-              yAxes: [{
-                  ticks: {
-                      beginAtZero:true
-                  }
-              }]
-          }
-      }
-    }
   }
 }
 

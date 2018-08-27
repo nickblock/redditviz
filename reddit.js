@@ -1,5 +1,6 @@
 const NameCountList = require("./name_count").NameCountList;
 const https = require('./http_module');
+const cache = require("./cache");
 
 User = function(name) {
   this.name = name;
@@ -14,7 +15,7 @@ User.prototype = {
       let user_comments = await https.GetUrl(this.getUrl(this.name));
       let subreddits = this.parseSubreddits(user_comments);
       
-      return subreddits;
+      return subreddits.get_sorted();
     }
     catch (err) {
       console.log(err.message);
@@ -100,7 +101,6 @@ Thread.prototype = {
       }
     }
   }
-
 }
 
 Subreddit = function(title) {
@@ -114,6 +114,18 @@ Subreddit.prototype = {
   getUrl: function(title) {
     return global.config.base_reddit_url + "r/" + title + '/.json?limit=' + global.config.subreddit_thread_limit;
   },
+  getSubredditsCached: async function() {
+    
+    try {
+      var cachedSubs = await cache.GetCache().Get(this.title);
+      return cachedSubs;
+    }
+    catch (err) {
+      var subs = await this.getSubreddits();
+      cache.GetCache().Push(this.title, subs);
+      return subs;
+    }
+  },
   getSubreddits: async function() {
 
     try {
@@ -122,13 +134,13 @@ Subreddit.prototype = {
       //parse all the user comments of those threads, totalling up the users by frequency of comments
       let userFrequencies = await this.parseThreads(response);
       let enumUsers = this.enumerateUsersOfThreads(userFrequencies);
-      //go through each user, totalling up thier comments on other subreddits
+      //go through each user, totalling up their comments on other subreddits
       let userSubreddits = await this.enumerateUserSubreddits(enumUsers);
       //merge those subreddits into a frequency count
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
       //this is the list of other subreddits most frequnted by users of this subreddit
-      return mergeSubredditList;
+      return mergeSubredditList.get_sorted();
     }
     catch (err) {
       throw err;
@@ -136,7 +148,7 @@ Subreddit.prototype = {
   },
   parseThreads: function(response) {
     
-    console.log('got ' + this.title + " t=" + response.data.children.length);
+    console.log('got ' + this.title);
   
     var threadParseList = [];
     for(var i=0; i<response.data.children.length; i++) {
@@ -146,6 +158,15 @@ Subreddit.prototype = {
       threadParseList.push(thread.getUserFreq());
     }
     return Promise.all(threadParseList);
+  },
+  enumerateUsersOfThreads: function(userFrequencies) {
+    var userList = new NameCountList();
+    for(var i=0; i<userFrequencies.length; i++) {
+      if(userFrequencies[i] !== undefined) {
+        userList.merge(userFrequencies[i]);
+      }
+    }
+    return userList.get_sorted()
   },
   enumerateUserSubreddits: function(user_list) {
     var count = user_list.length < global.config.enum_user_sub_count ? user_list.length : global.config.enum_user_sub_count;
@@ -164,15 +185,6 @@ Subreddit.prototype = {
       }
     }
     return mergeSubredditList;
-  },
-  enumerateUsersOfThreads: function(userFrequencies) {
-    var userList = new NameCountList();
-    for(var i=0; i<userFrequencies.length; i++) {
-      if(userFrequencies[i] !== undefined) {
-        userList.merge(userFrequencies[i]);
-      }
-    }
-    return userList.get_sorted()
   },
   printSortedSubs: async function() {
 
