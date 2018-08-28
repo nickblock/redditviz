@@ -14,13 +14,13 @@ Cache.prototype = {
         this.redis_client = null;
         });
     },
-    Get: function(key) {
+    Get: function(key, timeout) {
 
         var This = this;
         return new Promise(function(resolve, reject) {
             This.redis_client.get(key, function(error, result) {
                 result = JSON.parse(result);
-                if(error || !result || !CheckTime(result)) {
+                if(error || !result || !CheckTime(result, timeout)) {
                     reject("redis: no data for " + key);
                 }
                 else {
@@ -42,9 +42,9 @@ Cache.prototype = {
     }
 }
 
-var CheckTime = function(data) {
+var CheckTime = function(data, timeout) {
     var time_diff = Date.now() - data.time; 
-    if(time_diff > global.config.cache_invalid_time) {
+    if(time_diff > timeout) {
         return false;
     }
     else {

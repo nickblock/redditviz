@@ -12,7 +12,7 @@ User.prototype = {
   getSubredditsCached: async function() {
     
     try {
-      var cachedSubs = await cache.GetCache().Get(this.name);
+      var cachedSubs = await cache.GetCache().Get(this.name, global.config.cache_invalid_user_time);
       return cachedSubs;
     }
     catch (err) {
@@ -129,7 +129,7 @@ Subreddit.prototype = {
   getSubredditsCached: async function() {
     
     try {
-      var cachedSubs = await cache.GetCache().Get(this.title);
+      var cachedSubs = await cache.GetCache().Get(this.title, global.config.cache_invalid_sub_time);
       return cachedSubs;
     }
     catch (err) {
