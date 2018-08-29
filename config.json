@@ -8,5 +8,6 @@
     "cache_invalid_sub_time": 3600000,
     "cache_invalid_user_time": 3600000,
     "chart_item_size": 20,
-    "base_reddit_url": "https://www.reddit.com/"
+    "base_reddit_url": "https://www.reddit.com/",
+    "http_response_cache": false
 }

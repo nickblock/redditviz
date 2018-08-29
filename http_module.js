@@ -23,7 +23,9 @@ var doGet = async function(url) {
         if(json_data.error == 400) {
             throw new Error(json_data.message);
         }
-        fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
+        if(global.config.http_response_cache) {
+            fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
+        }
         return (json_data);
     }
     catch (err) {
@@ -32,7 +34,7 @@ var doGet = async function(url) {
 
 }
 
-module.exports.GetUrl = async function(url) {
+var doGetWithCache = async function(url) {
 
     try {
         return JSON.parse(
@@ -40,6 +42,16 @@ module.exports.GetUrl = async function(url) {
                 getCacheFilePath(url)));
     }
     catch (err) {
+        return await doGet(url);
+    }
+}
+
+module.exports.GetUrl = async function(url) {
+
+    if(global.config.http_response_cache) {
+        return await doGetWithCache(url);
+    }
+    else {
         return await doGet(url);
     }
 }

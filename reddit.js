@@ -143,6 +143,10 @@ Subreddit.prototype = {
     try {
       //Fetch this subreddits main thread page
       let response = await https.GetUrl(this.getUrl(this.title));
+
+      if(response.data.children.length == 0) {
+        throw new Error("No data for subreddit");
+      }
       //parse all the user comments of those threads, totalling up the users by frequency of comments
       let userFrequencies = await this.parseThreads(response);
       let enumUsers = this.enumerateUsersOfThreads(userFrequencies);
