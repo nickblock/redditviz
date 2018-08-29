@@ -4,7 +4,6 @@
 <head>
 	<title>Bubble Chart</title>
 	<script src="/Chart.min.js"></script>
-	<script src="/utils.js"></script>
 	<style type="text/css">
 		canvas{
 			-moz-user-select: none;
@@ -17,17 +16,27 @@
 <body>
 	<div id="container" style="width: 100%;">
         <div id="message"></div> 
-		<canvas id="canvas"></canvas>
+        <canvas id="canvas"></canvas>
+        <div id="search-box">
+            Search <input type="text" id="search-term"/><button id="search-button">Go</button></div>
+        </div>
 	</div>
 	<script>
-
-        var data_labels;
+        var fetch, data_labels;
         document.getElementById('canvas').onclick = function(evt) {
             var activePoints = window.reddit_graph.getElementsAtEvent(evt);
             if(activePoints.length) {
                 fetch_graph("r/" + activePoints[0]._model.label);
             }
         }
+        document.getElementById("search-button").onclick = function(evt) {
+            fetch_graph("r/" + document.getElementById('search-term').value);
+        }
+        document.getElementById("search-term").addEventListener("keyup", function(evt) {
+            if (event.keyCode === 13) {
+                fetch_graph("r/" + document.getElementById('search-term').value);
+            }
+        });
 
         var get_relevant_search_from_address = function() {
             var remove_proto = window.location.href.replace("http://", "");
@@ -46,18 +55,23 @@
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
-
-                    var resp = JSON.parse(this.response);
-                    if(resp.message !== undefined) {
-                        display_message(resp.message);
+                    try {
+                        var resp = JSON.parse(this.response);
+                        if(resp.message !== undefined) {
+                            display_message(resp.message);
+                        }
+                        if(resp.chart) {
+                            data_labels = resp.chart.data.labels
+                            var ctx = document.getElementById('canvas').getContext('2d');
+                            window.reddit_graph = new Chart(ctx, resp.chart);
+                        }
                     }
-                    if(resp.chart) {
-                        data_labels = resp.chart.data.labels
-                        var ctx = document.getElementById('canvas').getContext('2d');
-                        window.reddit_graph = new Chart(ctx, resp.chart);
+                    catch (err) {
+                        display_message(search + " not found");
                     }
                 }
             };
+            fetch = search;
             var url = create_url_from_search(search);
             window.history.pushState(undefined, "Title", url);
             display_message("Fetching " + search);
