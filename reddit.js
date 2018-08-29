@@ -143,7 +143,7 @@ Subreddit.prototype = {
     try {
       //Fetch this subreddits main thread page
       let response = await https.GetUrl(this.getUrl(this.title));
-
+      //reddit returns valid response for non-existent subs
       if(response.data.children.length == 0) {
         throw new Error("No data for subreddit");
       }
