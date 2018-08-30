@@ -50,6 +50,23 @@
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
 
+        var colorChart = function(chart) {
+            var dataSet = chart.config.data.datasets[0];
+            dataSet.backgroundColor = [];
+            for(var i=0; i<dataSet.data.length; i++) {
+                var color = "blue";
+                var m = i%3;
+                if(m == 0) {
+                    color = "green";
+                }
+                else if(m==1) {
+                    color = "red";
+                }
+                dataSet.backgroundColor.push(color);
+            }
+            chart.update();
+        }
+
         var fetch_graph = function(search) {
 
             var xhttp = new XMLHttpRequest();
@@ -64,6 +81,8 @@
                             data_labels = resp.chart.data.labels
                             var ctx = document.getElementById('canvas').getContext('2d');
                             window.reddit_graph = new Chart(ctx, resp.chart);
+                            
+                            colorChart(window.reddit_graph);
                         }
                     }
                     catch (err) {
