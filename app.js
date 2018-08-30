@@ -36,10 +36,10 @@ var title_styling = function(input) {
     return input;
 }
 var subreddit_message = function(input) {
-    return title_styling("This graph shows the other most commented on subreddits by the users of " + input)
+    return title_styling("This graph shows the other most commented on subreddits by the users of <a href=\""+global.config.base_reddit_url+"/r/" +input+"\" target=\"_blank\">" + input + "</a>")
 }
 var user_message = function(input) {
-    return title_styling("Most commented on subreddits of user " + input);
+    return title_styling("Most commented on subreddits of user <a href=\""+global.config.base_reddit_url+"/user/" +input+"\" target=\"_blank\">" + input + "</a>");
 }
 app.get("/r/:id", function(req, res) {
 
