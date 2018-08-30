@@ -43,6 +43,9 @@ Cache.prototype = {
 }
 
 var CheckTime = function(data, timeout) {
+    if(timeout < 0) {
+        return true;
+    }
     var time_diff = Date.now() - data.time; 
     if(time_diff > timeout) {
         return false;
