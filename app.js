@@ -39,7 +39,7 @@ var subreddit_message = function(input) {
     return title_styling("This graph shows the other most commented on subreddits by the users of " + input)
 }
 var user_message = function(input) {
-    return title_styling("Most commneted on subreddits of user " + input);
+    return title_styling("Most commented on subreddits of user " + input);
 }
 app.get("/r/:id", function(req, res) {
 
@@ -85,7 +85,7 @@ app.get("/u/:id", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-    res.json({yo: "redditviz"});
+    return_html(res);
 });
 
 

@@ -23,10 +23,13 @@
 <body>
 	<div id="container" style="width: 100%;">
         <div id="message"></div> 
-        <canvas id="canvas"></canvas>
-        <div id="search-box">
-            Search <input type="text" id="search-term"/><button id="search-button">Go</button></div>
+            <div id="search-box">
+                <div>Search</div> 
+                <input type="text" id="search-term"/><button id="search-button">Go</button>
+                <div id="help-search">Prefix with u/ for users or r/ for subreddits</div>
+            </div>
         </div>
+        <canvas id="canvas"></canvas>
 	</div>
 	<script>
 
@@ -49,14 +52,22 @@
         }
         document.getElementById("search-term").addEventListener("keyup", function(evt) {
             if (event.keyCode === 13) {
-                fetch_graph("r/" + document.getElementById('search-term').value);
+                fetch_graph(format_seach_term(document.getElementById('search-term').value));
             }
         });
-
+        var format_seach_term = function(input) {
+            if(input.substr(0,2) == "u/" || input.substr(0,2) == "r/") {
+                return input;
+            }
+            else {
+                return "r/" + input;
+            }
+        }
         var get_relevant_search_from_address = function() {
             var remove_proto = window.location.href.replace("http://", "");
             var first_slash = remove_proto.indexOf("/") +1;
-            return remove_proto.substr(first_slash, remove_proto.length - first_slash); 
+            var result = remove_proto.substr(first_slash, remove_proto.length - first_slash) || "r/AskReddit";
+            return result;
         }
         var create_url_from_search = function(search) {
             return "http://localhost:3000/" + search;
