@@ -9,7 +9,7 @@ const chart = require("./chart");
 
 global.config = JSON.parse(fs.readFileSync("config.json"));
 
-cache.GetCache();
+var TheCache = cache.GetCache();
 
 var remove_json = function(input) {
     if(input.endsWith(".json")) {
@@ -52,6 +52,7 @@ app.get("/r/:id", function(req, res) {
             res.json({  chart: chart.Create(input, subreddits),
                         message: subreddit_message(input) }       
             );
+            TheCache.Increment(input);
         })
         .catch(err => {
             res.json({message: title_styling("subreddit " + input + " not found")});
@@ -74,6 +75,7 @@ app.get("/u/:id", function(req, res) {
             res.json({  chart: chart.Create(input, subreddits),
                         message: user_message(input) }
             );
+            TheCache.Increment(input);
         })
         .catch(err => {
             res.json({message: title_styling("user " + input + " not found")});

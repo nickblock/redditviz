@@ -40,6 +40,22 @@ Cache.prototype = {
     },
     Flush: function() {
         this.redis_client.flushdb();
+    },
+    Increment: async function(key) {
+        this.redis_client.incr(key + "_count");
+    },
+    Count: function(key) {
+        var This = this;
+        return new Promise(function(resolve, reject) {
+            This.redis_client.get(key + "_count", function(error, result) {
+                if(error) {
+                    resolve(0);
+                }
+                else {
+                    resolve(result);
+                }
+            });
+        });
     }
 }
 
@@ -56,7 +72,7 @@ var CheckTime = function(data, timeout) {
     }
 }
 
-var TheCache = undefined;
+var TheCache;
 var GetCache = function() {
     if(!TheCache) {
         TheCache = new Cache();
