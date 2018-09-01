@@ -5,8 +5,8 @@
     "user_comment_limit": 100,
     "subreddit_thread_limit": 200,
     "cache_dir": "cache/",
-    "cache_invalid_sub_time": 0,
-    "cache_invalid_user_time": 0,
+    "cache_invalid_sub_time": -1,
+    "cache_invalid_user_time": -1,
     "chart_item_size": 20,
     "base_reddit_url": "https://www.reddit.com/",
     "http_response_cache": false
