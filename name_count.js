@@ -20,16 +20,16 @@ NameCountList.prototype = {
       }
     }
     else {
-      this.merge_sorted(otherList);
+      this.mergeSorted(otherList);
     }
   },
-  merge_sorted: function(otherList) {
+  mergeSorted: function(otherList) {
     for(i=0; i<otherList.length; i++) {
       var item = otherList[i];
       this.add(item.name, item.count)
     }
   },
-  get_sorted: function() {
+  getSorted: function() {
     var sortedItems = [];
     var names = Object.keys(this.items);
     for(var i=0; i<names.length; i++) {

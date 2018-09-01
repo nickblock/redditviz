@@ -27,7 +27,7 @@ User.prototype = {
       let user_comments = await https.GetUrl(this.getUrl(this.name));
       let subreddits = this.parseSubreddits(user_comments);
       
-      return subreddits.get_sorted();
+      return subreddits.getSorted();
     }
     catch (err) {
       console.log(err.message);
@@ -156,7 +156,7 @@ Subreddit.prototype = {
       let mergeSubredditList = this.mergeUserSubreddits(userSubreddits);
       
       //this is the list of other subreddits most frequnted by users of this subreddit
-      return mergeSubredditList.get_sorted();
+      return mergeSubredditList.getSorted();
     }
     catch (err) {
       throw err;
@@ -182,7 +182,7 @@ Subreddit.prototype = {
         userList.merge(userFrequencies[i]);
       }
     }
-    return userList.get_sorted()
+    return userList.getSorted()
   },
   enumerateUserSubreddits: function(user_list) {
     var count = user_list.length < global.config.enum_user_sub_count ? user_list.length : global.config.enum_user_sub_count;
@@ -205,7 +205,7 @@ Subreddit.prototype = {
   printSortedSubs: async function() {
 
     let subreddits = await this.getSubreddits();
-    subreddits = subreddits.get_sorted();
+    subreddits = subreddits.getSorted();
     // var subreddits = this.asyncProcess()
     for(var i=0; i<subreddits.length; i++) {
       var sub = subreddits[i];
