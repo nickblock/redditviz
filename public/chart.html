@@ -84,8 +84,6 @@
                         if(resp.data) {
                             var ctx = document.getElementById('canvas').getContext('2d');
                             window.reddit_graph = CreateChart(ctx, search, resp.data);
-                            
-                            colorChart(window.reddit_graph);
                         }
                     }
                     catch (err) {

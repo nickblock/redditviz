@@ -38,7 +38,7 @@ var CreateChart = function(ctx, label, data) {
           }]
       },
       options: {
-          events: ["click"],
+          events: ["click", "hover"],
           scales: {
               yAxes: [{
                   ticks: {
