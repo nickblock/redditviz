@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const reddit = require("./reddit");
 const cache = require("./cache");
-const chart = require("./chart");
 
 global.config = JSON.parse(fs.readFileSync("config.json"));
 
@@ -49,7 +48,7 @@ app.get("/r/:id", function(req, res) {
 
         var sub = new reddit.Subreddit(input);
         sub.getSubredditsCached().then(subreddits => {
-            res.json({  chart: chart.Create(input, subreddits),
+            res.json({  data: subreddits,
                         message: subreddit_message(input) }       
             );
             TheCache.Increment(input);
@@ -72,7 +71,7 @@ app.get("/u/:id", function(req, res) {
 
         var user = new reddit.User(input);
         user.getSubredditsCached().then(subreddits => {
-            res.json({  chart: chart.Create(input, subreddits),
+            res.json({  data: subreddits,
                         message: user_message(input) }
             );
             TheCache.Increment(input);

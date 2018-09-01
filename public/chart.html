@@ -4,6 +4,7 @@
 <head>
 	<title>RedditViz</title>
 	<script src="/Chart.min.js"></script>
+	<script src="/chart_util.js"></script>
 	<style type="text/css">
 		canvas{
 			-moz-user-select: none;
@@ -33,13 +34,6 @@
 	</div>
 	<script>
 
-        var colors = [
-            "rgba(44, 19, 32, 1)",
-            "rgba(95, 75, 102, 1)",
-            "rgba(167, 173, 198, 1)",
-            "rgba(135, 151, 175, 1)",
-            "rgba(86, 102, 122, 1)",
-        ];
         var fetch, data_labels;
         document.getElementById('canvas').onclick = function(evt) {
             var activePoints = window.reddit_graph.getElementsAtEvent(evt);
@@ -76,23 +70,6 @@
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
 
-        var colorChart = function(chart) {
-            var dataSet = chart.config.data.datasets[0];
-            dataSet.backgroundColor = [];
-            for(var i=0; i<dataSet.data.length; i++) {
-                var color = "blue";
-                var m = i%3;
-                if(m == 0) {
-                    color = "green";
-                }
-                else if(m==1) {
-                    color = "red";
-                }
-                dataSet.backgroundColor.push(colors[i%colors.length]);
-            }
-            chart.update();
-        }
-
         var fetch_graph = function(search) {
 
             console.log("fetch_graph " + search);
@@ -104,10 +81,9 @@
                         if(resp.message !== undefined) {
                             display_message(resp.message);
                         }
-                        if(resp.chart) {
-                            data_labels = resp.chart.data.labels
+                        if(resp.data) {
                             var ctx = document.getElementById('canvas').getContext('2d');
-                            window.reddit_graph = new Chart(ctx, resp.chart);
+                            window.reddit_graph = CreateChart(ctx, search, resp.data);
                             
                             colorChart(window.reddit_graph);
                         }
