@@ -20,17 +20,18 @@ Cache.prototype = {
         return new Promise(function(resolve, reject) {
             This.redis_client.get(key, function(error, result) {
                 result = JSON.parse(result);
-                if(error || !result || !CheckTime(result, timeout)) {
+                if(error || !result) {
                     reject("redis: no data for " + key);
                 }
                 else {
-                    resolve(result.data);
+                    resolve(result);
                 }
             });
         });
 
     },
     Push: function(key, data) {
+
         var dataStore = {
             time: Date.now(),
             data: data

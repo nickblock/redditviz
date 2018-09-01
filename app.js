@@ -70,7 +70,7 @@ app.get("/u/:id", function(req, res) {
     if(input) {
 
         var user = new reddit.User(input);
-        user.getSubreddits().then(subreddits => {
+        user.getSubredditsCached().then(subreddits => {
             res.json({  chart: chart.Create(input, subreddits),
                         message: user_message(input) }
             );

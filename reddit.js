@@ -13,7 +13,14 @@ User.prototype = {
     
     try {
       var cachedSubs = await cache.GetCache().Get(this.name, global.config.cache_invalid_user_time);
-      return cachedSubs;
+      if(!cache.CheckTime(cachedSubs, global.config.cache_invalid_user_time)) {
+        cache.GetCache().Push(this.name, cachedSubs.data); //push the same data to upudate the timestamp
+        this.getSubreddits().then(result => {
+          console.log("updating cache for " + this.name);
+          cache.GetCache().Push(this.name, result);
+        });
+      }
+      return cachedSubs.data;
     }
     catch (err) {
       var subs = await this.getSubreddits();
@@ -130,7 +137,14 @@ Subreddit.prototype = {
     
     try {
       var cachedSubs = await cache.GetCache().Get(this.title, global.config.cache_invalid_sub_time);
-      return cachedSubs;
+      if(!cache.CheckTime(cachedSubs, global.config.cache_invalid_sub_time)) {
+        cache.GetCache().Push(this.title, cachedSubs.data); //push the same data to upudate the timestamp
+        this.getSubreddits().then(result => {
+          console.log("updating cache for " + this.title);
+          cache.GetCache().Push(this.title, result);
+        });
+      }
+      return cachedSubs.data;
     }
     catch (err) {
       var subs = await this.getSubreddits();
