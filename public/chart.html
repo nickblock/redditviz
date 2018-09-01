@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Bubble Chart</title>
+	<title>RedditViz</title>
 	<script src="/Chart.min.js"></script>
 	<style type="text/css">
 		canvas{
@@ -123,7 +123,7 @@
             xhttp.send();
         }
         var fetch_graph_set_history = function(search) {
-            
+
             window.history.pushState({search:search}, "Title", create_url_from_search(search));
             fetch_graph(search);
         }
