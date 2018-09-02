@@ -57,7 +57,8 @@ var CreateOrbital = function(ctx, label, data) {
         orbs.push({
             x: i,
             y: Math.floor(Math.random() * 10),
-            r: data[i].count
+            r: data[i].count,
+            l: data[i].name
         });
         labels.push(data[i].name);
     }
@@ -76,14 +77,39 @@ var CreateOrbital = function(ctx, label, data) {
           }]
       },
       options: {
-          events: ["click", "hover"],
-          scales: {
-              yAxes: [{
-                  ticks: {
-                      beginAtZero:true
-                  }
-              }]
-          }
+        plugins: {
+            datalabels: {
+        
+                anchor: function(context) {
+                    var value = context.dataset.data[context.dataIndex];
+                    return value.v < 50 ? 'end' : 'center';
+                },
+                align: function(context) {
+                    var value = context.dataset.data[context.dataIndex];
+                    return value.v < 50 ? 'end' : 'center';
+                },
+                color: function(context) {
+                    var value = context.dataset.data[context.dataIndex];
+                    return value.v < 50 ? context.dataset.backgroundColor : 'white';
+                },
+                font: {
+                    weight: 'bold'
+                },
+                formatter: function(value) {
+                    return value.l;
+                },
+                offset: 2,
+                padding: 0
+            }
+        },
+        events: ["click", "hover"],
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        }
       }
     }
     return new Chart(ctx, chart_config);
