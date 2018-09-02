@@ -7,6 +7,27 @@
  the command is executed once for each object in the array. </p>
 */
 
+var circlePoints = 200;
+
+var genCircleAttributes = function(r, p) {
+    var attributes = [0.0, 0.0];
+    var frac = (Math.PI*2.0)/p;
+    for(var i=0; i<p; i++) {
+        attributes.push(r * Math.cos(i * frac));
+        attributes.push(r * Math.sin(i * frac));
+    }
+    return attributes;
+} 
+
+var genCircleElements = function(p) {
+    var elements = []
+    for(var i=0; i<p; i++) {
+        elements.push(0, i+1, i+2);
+    }
+    elements[elements.length-1] = 1;
+    return elements
+}
+
 var drawBatch = function(regl) {
     
 // Next we create our command
@@ -21,20 +42,17 @@ const draw = regl({
   vert: `
     precision mediump float;
     attribute vec2 position;
-    uniform float angle;
+    uniform float scale;
     uniform vec2 offset;
     void main() {
-      gl_Position = vec4(
-        cos(angle) * position.x + sin(angle) * position.y + offset.x,
-        -sin(angle) * position.x + cos(angle) * position.y + offset.y, 0, 1);
+      gl_Position = vec4((vec2(position.x, position.y) * scale) + offset, 0.0, 1.0);
     }`,
 
   attributes: {
-    position: [
-      0.5, 0,
-      0, 0.5,
-      1, 1]
+    position: genCircleAttributes(1, circlePoints) 
   },
+
+  elements: genCircleElements(circlePoints),
 
   uniforms: {
     // the batchId parameter gives the index of the command
@@ -44,15 +62,15 @@ const draw = regl({
       Math.sin(0.02 * ((0.3 + Math.cos(2.0 * batchId)) * tick + 0.8 * batchId)),
       1
     ],
-    angle: ({tick}) => 0.01 * tick,
-    offset: regl.prop('offset')
+    offset: regl.prop('offset'),
+    scale: regl.prop('scale')
   },
 
   depth: {
     enable: false
   },
 
-  count: 3
+  count: circlePoints * 3
 })
 
 // Here we register a per-frame callback to draw the whole scene
@@ -63,15 +81,15 @@ regl.frame(function () {
 
   // This tells regl to execute the command once for each object
   draw([
-    { offset: [-1, -1] },
-    { offset: [-1, 0] },
-    { offset: [-1, 1] },
-    { offset: [0, -1] },
-    { offset: [0, 0] },
-    { offset: [0, 1] },
-    { offset: [1, -1] },
-    { offset: [1, 0] },
-    { offset: [1, 1] }
+    { offset: [-1, -1], scale:0.2},
+    { offset: [-1, 0], scale:0.2},
+    { offset: [-1, 1], scale:0.2},
+    { offset: [0, -1], scale:0.2},
+    { offset: [0, 0], scale:0.2},
+    { offset: [0, 1], scale:0.2},
+    { offset: [1, -1], scale:0.2},
+    { offset: [1, 0], scale:0.2},
+    { offset: [1, 1], scale:0.2}
   ])
 })
 
