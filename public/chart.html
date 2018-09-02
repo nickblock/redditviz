@@ -83,11 +83,11 @@
                         }
                         if(resp.data) {
                             var ctx = document.getElementById('canvas').getContext('2d');
-                            window.reddit_graph = CreateChart(ctx, search, resp.data);
+                            window.reddit_graph = CreateOrbital(ctx, search, resp.data);
                         }
                     }
                     catch (err) {
-                        display_message(search + " not found");
+                        display_message(err);
                     }
                 }
             };

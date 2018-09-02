@@ -50,3 +50,41 @@ var CreateChart = function(ctx, label, data) {
     }
     return new Chart(ctx, chart_config);
 }
+var CreateOrbital = function(ctx, label, data) {
+    var orbs = [], labels = [];
+    var count = data.length < chart_item_max ? data.length : chart_item_max;
+    for(var i=1; i<count; i++) {
+        orbs.push({
+            x: i,
+            y: Math.floor(Math.random() * 10),
+            r: data[i].count
+        });
+        labels.push(data[i].name);
+    }
+    var chart_config = {
+      type: 'bubble',
+      animation: {
+          duration: 50000
+      },
+      data: {
+          labels: labels,
+          datasets: [{
+              label: label,
+              data: orbs,
+              borderWidth: 1,
+              backgroundColor: doColors(orbs.length)
+          }]
+      },
+      options: {
+          events: ["click", "hover"],
+          scales: {
+              yAxes: [{
+                  ticks: {
+                      beginAtZero:true
+                  }
+              }]
+          }
+      }
+    }
+    return new Chart(ctx, chart_config);
+}
