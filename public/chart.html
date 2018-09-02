@@ -39,7 +39,8 @@
         document.getElementById('canvas').onclick = function(evt) {
             var activePoints = window.reddit_graph.getElementsAtEvent(evt);
             if(activePoints.length) {
-                fetch_graph_set_history("r/" + activePoints[0]._model.label);
+                fetch_graph_set_history("r/" + activePoints["0"].$datalabels._model.lines);
+                // fetch_graph_set_history("r/" + activePoints[0]._model.label);
             }
         }
         document.getElementById("search-button").onclick = function(evt) {
