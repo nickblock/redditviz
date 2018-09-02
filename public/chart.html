@@ -37,11 +37,13 @@
 
         var fetch, data_labels;
         document.getElementById('canvas').onclick = function(evt) {
-            var activePoints = window.reddit_graph.getElementsAtEvent(evt);
-            if(activePoints.length) {
-                fetch_graph_set_history("r/" + activePoints["0"].$datalabels._model.lines);
-                // fetch_graph_set_history("r/" + activePoints[0]._model.label);
-            }
+            var orb = FindOrb(evt.layerX, evt.layerY);
+            console.log("x:" + evt.layerX + " y:" + evt.layerY + " " +orb.l);
+            // var activePoints = window.reddit_graph.getElementsAtEvent(evt);
+            // if(activePoints.length) {
+            //     fetch_graph_set_history("r/" + activePoints["0"].$datalabels._model.lines);
+            //     // fetch_graph_set_history("r/" + activePoints[0]._model.label);
+            // }
         }
         document.getElementById("search-button").onclick = function(evt) {
             fetch_graph_set_history("r/" + document.getElementById('search-term').value);

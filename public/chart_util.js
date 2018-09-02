@@ -50,8 +50,23 @@ var CreateChart = function(ctx, label, data) {
     }
     return new Chart(ctx, chart_config);
 }
+
+var orbs = [];
+var FindOrb = function(x, y) {
+    var closest = Number.MAX_VALUE;
+    var result;
+    for(var i=0; i<orbs.length; i++) {
+        var orb = orbs[i];
+        var distance = Math.pow(Math.abs(x-orb.x), 2) + Math.pow(Math.abs(y-orb.y), 2);
+        if(distance < closest) {
+            result = orb;
+            closest = distance;
+        }
+    }
+    return result;
+}
 var CreateOrbital = function(ctx, label, data) {
-    var orbs = [], labels = [];
+    var labels = [];
     var count = data.length < chart_item_max ? data.length : chart_item_max;
     for(var i=1; i<count; i++) {
         orbs.push({
