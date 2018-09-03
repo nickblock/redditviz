@@ -1,12 +1,3 @@
-/*
-  tags: basic
-  
-  <p>This example demonstrates how to use batch mode commands</p>
-  
-  <p> To use a command in batch mode, we pass in an array of objects.  Then
-  the command is executed once for each object in the array. </p>
-  */
- 
  var screenSize = [1.0, 1.0];
 
  var colors = [
@@ -20,6 +11,7 @@
 var OrbManager = function() {
     
     this.orbs = [];
+    this.maxradius = 0.0;
 }
 OrbManager.prototype = {
 
@@ -31,10 +23,13 @@ OrbManager.prototype = {
         for(var i=1; i<count; i++) {
             this.orbs.push({
                 x: i * (screenSize[0]/count),
-                y: Math.floor(Math.random() * screenSize[1]),
+                y: Math.random() * screenSize[1],
                 r: data[i].count,
                 l: data[i].name
             });
+            if(data[i].count > this.maxradius) {
+                this.maxradius = data[i].count;
+            }
         }
     },
     render: function() {
@@ -49,7 +44,7 @@ OrbManager.prototype = {
 
 var TheOrbManager = new OrbManager();
 
-var circlePoints = 200;
+var circlePoints = 100;
 
 var genCircleAttributes = function(r, p) {
     var attributes = [0.0, 0.0, 0.0];
@@ -80,12 +75,14 @@ const draw = regl({
     uniform vec4 color;
     varying float outside;
     void main() {
-        if(outside > 0.98) {
-            gl_FragColor = vec4(0,0,0,1.0);
-        }
-        else {
-            gl_FragColor = color;
-        }
+        // if(outside > 0.90) {
+        //     gl_FragColor = vec4(0,0,0,1);
+        // }
+        // else {
+        //     gl_FragColor = color;
+        // }
+        
+        gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
     }`,
 
   vert: `
@@ -121,8 +118,8 @@ const draw = regl({
     enable: false
   },
 
-  count: circlePoints * 3
-})
+  count: circlePoints * 3,
+});
 
 // Here we register a per-frame callback to draw the whole scene
 regl.frame(function () {
@@ -132,6 +129,6 @@ regl.frame(function () {
 
   // This tells regl to execute the command once for each object
   draw(TheOrbManager.render())
-})
+});
 
 }
