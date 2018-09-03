@@ -48,8 +48,9 @@
         
 	</div>
 	<script>
-        var regl = createREGL()
-        screenSize = [1024.0, 1024.0]
+        var graphicsCanvas = document.getElementById('canvas')
+        var regl = createREGL(graphicsCanvas)
+        screenSize = [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight];
         drawBatch(regl);
 
         var fetch, data_labels;
