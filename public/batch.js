@@ -68,21 +68,20 @@ var genCircleElements = function(p) {
 
 var drawBatch = function(regl) {
     
-// Next we create our command
 const draw = regl({
   frag: `
     precision mediump float;
     uniform vec4 color;
     varying float outside;
     void main() {
-        // if(outside > 0.90) {
-        //     gl_FragColor = vec4(0,0,0,1);
-        // }
-        // else {
-        //     gl_FragColor = color;
-        // }
+        if(outside > 0.98) {
+            gl_FragColor = vec4(0,0,0,1);
+        }
+        else {
+            gl_FragColor = color;
+        }
         
-        gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
+//        gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
     }`,
 
   vert: `
@@ -107,7 +106,7 @@ const draw = regl({
   elements: genCircleElements(circlePoints),
 
   uniforms: {
-    // the batchId parameter gives the index of the command
+      
     color: ({tick}, props, batchId) => colors[batchId%colors.length],
     offset: regl.prop('offset'),
     scale: regl.prop('scale'),
@@ -121,13 +120,11 @@ const draw = regl({
   count: circlePoints * 3,
 });
 
-// Here we register a per-frame callback to draw the whole scene
 regl.frame(function () {
   regl.clear({
     color: [0.7, 0.7, 0.7, 1]
   })
 
-  // This tells regl to execute the command once for each object
   draw(TheOrbManager.render())
 });
 

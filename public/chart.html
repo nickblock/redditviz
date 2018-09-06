@@ -23,7 +23,7 @@
             font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
             font-weight: 500; 
             font-size: 14px; 
-            color: #1e1e1e; /* dark gray */ 
+            color: white;  
             z-index: 0
         }
         #overlay {
@@ -49,8 +49,9 @@
 	</div>
 	<script>
         var graphicsCanvas = document.getElementById('canvas');
-        var regl = createREGL({})
         screenSize = [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight];
+        
+        var regl = createREGL({})
         drawBatch(regl);
 
         var fetch, data_labels;
