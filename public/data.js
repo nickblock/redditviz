@@ -34,10 +34,10 @@ var Orb = function(data, primary) {
     var xpos, ypos;
     if(primary) {
         xpos = screenSize[0]/2.0;
-        ypos = screenSize[0]/2.0;
+        ypos = screenSize[1]/2.0;
     }
     else {
-        xpos = Math.random() * screenSize[0];
+        xpos = Math.random() * screenSize[0] ;
         ypos = Math.random() * screenSize[1];
     }
     var body = Matter.Bodies.circle(
@@ -73,7 +73,7 @@ Orb.prototype = {
         }
         var v = 0;
         for(var i=0; i<this.subs.length; i++) {
-            if(this.subs[i].namw == sub_name) {
+            if(this.subs[i].name == sub_name) {
                 v = this.subs[i].count;
                 break;
             }
@@ -96,10 +96,10 @@ Spring.prototype = {
             y: this.bodyA.position.y - this.bodyB.position.y
         }
         var l = Math.sqrt(v.x*v.x + v.y*v.y);
-        var f = (this.length - l) * this.strength;
+        var f = (l - this.length) * this.strength;
 
-        Matter.Body.applyForce(this.bodyA, this.bodyB.position, f);
-        Matter.Body.applyForce(this.bodyB, this.bodyA.position, f);
+        Matter.Body.applyForce(this.bodyA, this.bodyA.position, {x:-v.x*f, y:-v.y*f});
+        Matter.Body.applyForce(this.bodyB, this.bodyB.position, {x:v.x*f, y:v.y*f});
     }
 }
 
@@ -108,7 +108,7 @@ var OrbManager = function(fnc) {
     this.orbs = {};
     this.maxradius = 0.0;
     this.display_message_func;
-    this.springs = []
+    this.springs = [];
 }
 OrbManager.prototype = {
 
@@ -142,16 +142,8 @@ OrbManager.prototype = {
                     if(otherOrb.name == orb.name || otherOrb.subs == undefined) continue;
 
                     var ma = orb.get_mutual_attraction(otherOrb);
-                    if(ma != undefined) {
-                        // var constraint = Matter.Constraint.create({
-                        //     bodyA: orb.body,
-                        //     bodyB: otherOrb.body,
-                        //     length: (screenSize[0]/5.0) - ma,
-                        //     damping: 0.00001,
-                        //     siffnesss: 0.00001
-                        // });
-                        // Matter.World.addConstraint(physicsEngine.world, constraint);
-                        var s = new Spring(orb.body, otherOrb.body, (screenSize[0]/5.0) - ma, 0.000001);
+                    if(ma !== undefined) {
+                        var s = new Spring(orb.body, otherOrb.body, (screenSize[0]/5.0) - ma, 0.0000001);
                         s.update();
                         this.springs.push(s);
                     }
@@ -166,9 +158,10 @@ OrbManager.prototype = {
     center: function(name, data) {
         
         this.orbs = {};
-        var count = Math.min(data.length, 4);
-        for(var i=1; i<count; i++) {
-            var isPrimary = data[i].name == name;
+        var count = Math.min(data.length, 10);
+        for(var i=0; i<count; i++) {
+            var isPrimary = data[i].name == name.replace("r/", "");
+            if(data[i].name == "unrealengine") continue;
             var orb = new Orb(data[i], isPrimary);
             if(!isPrimary) {
                 this.fetch_subs(orb);
@@ -178,10 +171,9 @@ OrbManager.prototype = {
     },
     render: function() {
 
-        // for(var i=0; i<this.springs.length; i++) {
-        //     this.springs[i].update();
-        // }
-        
+        for(var i=0; i<this.springs.length; i++) {
+            this.springs[i].update();
+        }
         Matter.Engine.update(physicsEngine, 1000 / 60);
 
         var drawArray = [];
