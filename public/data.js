@@ -47,11 +47,12 @@ Spring.prototype = {
 var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
-var size_scale = 0.1;
+var size_scale = 0.25;
 var max_item_count = 12;
-var spring_strength = 0.0000001;
+var spring_strength = 0.000001;
 var mutual_dist_multiplier = 0.2;
-var body_friction = 0.1;
+var body_friction = 0.01;
+var body_mass = 10;
 
 var Orb = function(data, primary) {
     var xpos, ypos;
@@ -68,7 +69,8 @@ var Orb = function(data, primary) {
     var body = Matter.Bodies.circle(
         xpos, ypos,
         data.count * size_scale, {
-            frictionAir: body_friction
+            frictionAir: body_friction,
+            mass: body_mass
         }
     )
     Matter.World.add(physicsEngine.world, body);
@@ -88,7 +90,7 @@ Orb.prototype = {
             var attr = this.get_attraction(otherSub.name);
             if(attr !== undefined) {
                 var mutual = Math.min(other_attr, attr);
-                mutual = Math.max(0, mutual - Math.abs(other_attr - attr));
+                //mutual = Math.max(0, mutual - Math.abs(other_attr - attr));
 
                 return mutual;
             }
@@ -134,6 +136,7 @@ OrbManager.prototype = {
                 }
             }
             catch(err) {
+                console.log(err);
                 this.display_message_func("Couldn't retrieve data for " + search)
             }
         }
@@ -170,6 +173,7 @@ OrbManager.prototype = {
         for(var i=0; i<count; i++) {
             var isPrimary = data[i].name == name.replace("r/", "");
             var orb = new Orb(data[i], isPrimary);
+            orb.color = colors[i%colors.length];
             if(!isPrimary) {
                 this.fetch_subs(orb);
             }
@@ -187,7 +191,11 @@ OrbManager.prototype = {
 
         var drawArray = [];
         for(let orb of Object.values(this.orbs)) {
-            drawArray.push({offset:[orb.body.position.x, orb.body.position.y], scale:orb.body.circleRadius});
+            drawArray.push({
+                offset:[orb.body.position.x, orb.body.position.y], 
+                scale:orb.body.circleRadius,
+                color:orb.color
+            });
         }
         return drawArray;
     }

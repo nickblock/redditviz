@@ -1,13 +1,19 @@
  var screenSize = [1.0, 1.0];
 
- var colors = [
-    [44/255.0, 19/255.0, 32/255.0, 1.0],
-    [95/255.0, 75/255.0, 102/255.0, 1.0],
-    [167/255.0, 173/255.0, 198/255.0, 1.0],
-    [135/255.0, 151/255.0, 175/255.0, 1.0],
-    [86/255.0, 102/255.0, 122/255.0, 1.0],
-];
-
+//  var colors = [
+//     [44/255.0, 19/255.0, 32/255.0, 1.0],
+//     [95/255.0, 75/255.0, 102/255.0, 1.0],
+//     [167/255.0, 173/255.0, 198/255.0, 1.0],
+//     [135/255.0, 151/255.0, 175/255.0, 1.0],
+//     [86/255.0, 102/255.0, 122/255.0, 1.0],
+// ];
+var colors = [
+    [197/255, 209/255, 221/255, 1.0],
+    [112/255, 110/255, 141/255, 1.0],
+    [168/255, 160/255, 157/255, 1.0],
+    [125/255, 101/255, 79/255, 1.0],
+    [176/255, 149/255, 126/255, 1.0],
+]
 
 var circlePoints = 100;
 
@@ -39,14 +45,14 @@ const draw = regl({
     uniform vec4 color;
     varying float outside;
     void main() {
-        if(outside > 0.98) {
-            gl_FragColor = vec4(0,0,0,1);
-        }
-        else {
-            gl_FragColor = color;
-        }
+        // if(outside > 0.98) {
+        //     gl_FragColor = vec4(0,0,0,1);
+        // }
+        // else {
+        //     gl_FragColor = color;
+        // }
         
-//        gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
+       gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
     }`,
 
   vert: `
@@ -72,7 +78,7 @@ const draw = regl({
 
   uniforms: {
       
-    color: ({tick}, props, batchId) => colors[batchId%colors.length],
+    color: regl.prop('color'),
     offset: regl.prop('offset'),
     scale: regl.prop('scale'),
     screenSize: screenSize
