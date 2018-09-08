@@ -32,6 +32,9 @@ OrbManager.prototype = {
             }
         }
     },
+    append: function(data) {
+
+    },
     render: function() {
         var drawArray = [];
         for(var i=0; i<this.orbs.length; i++) {
