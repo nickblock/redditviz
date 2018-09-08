@@ -24,6 +24,12 @@ var data_fetch = async function(search) {
     });
 }
 
+var Engine = Matter.Engine,
+    World = Matter.World,
+    Bodies = Matter.Bodies;
+// create an engine
+var physicsEngine = Matter.Engine.create();
+
 var OrbManager = function(fnc) {
     
     this.orbs = {};
@@ -57,11 +63,15 @@ OrbManager.prototype = {
         this.orbs = {};
         var count = Math.min(data.length, chart_item_max);
         for(var i=1; i<count; i++) {
-            this.orbs[data[i].name] = {
-                x: i * (screenSize[0]/count),
-                y: Math.random() * screenSize[1],
-                r: data[i].count
-            };
+
+            var dataItem = data[i];
+            var body = Bodies.circle(
+                i * (screenSize[0]/count),
+                Math.random() * screenSize[1],
+                data[i].count
+            )
+            World.add(physicsEngine.world, body);
+            this.orbs[data[i].name] = body;
             if(data[i].count > this.maxradius) {
                 this.maxradius = data[i].count;
             }
@@ -71,9 +81,12 @@ OrbManager.prototype = {
 
     },
     render: function() {
+        
+        Engine.update(physicsEngine, 1000 / 60);
+
         var drawArray = [];
         for(let orb of Object.values(this.orbs)) {
-            drawArray.push({offset:[orb.x, orb.y], scale:orb.r});
+            drawArray.push({offset:[orb.position.x, orb.position.y], scale:orb.circleRadius});
         }
         return drawArray;
     }
