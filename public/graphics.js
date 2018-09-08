@@ -8,44 +8,6 @@
     [86/255.0, 102/255.0, 122/255.0, 1.0],
 ];
 
-var OrbManager = function() {
-    
-    this.orbs = [];
-    this.maxradius = 0.0;
-}
-OrbManager.prototype = {
-
-    create: function(data) {
-        
-        this.orbs = [];
-        var labels = [];
-        var count = data.length < chart_item_max ? data.length : chart_item_max;
-        for(var i=1; i<count; i++) {
-            this.orbs.push({
-                x: i * (screenSize[0]/count),
-                y: Math.random() * screenSize[1],
-                r: data[i].count,
-                l: data[i].name
-            });
-            if(data[i].count > this.maxradius) {
-                this.maxradius = data[i].count;
-            }
-        }
-    },
-    append: function(data) {
-
-    },
-    render: function() {
-        var drawArray = [];
-        for(var i=0; i<this.orbs.length; i++) {
-            var orb = this.orbs[i];
-            drawArray.push({offset:[orb.x, orb.y], scale:orb.r});
-        }
-        return drawArray;
-    }
-}
-
-var TheOrbManager = new OrbManager();
 
 var circlePoints = 100;
 
@@ -128,7 +90,7 @@ regl.frame(function () {
     color: [0.7, 0.7, 0.7, 1]
   })
 
-  draw(TheOrbManager.render())
+  draw(orbManager.render())
 });
 
 }

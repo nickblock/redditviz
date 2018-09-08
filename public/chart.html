@@ -6,6 +6,7 @@
 	<script src="/Chart.min.js"></script>
 	<script src="/chartjs-plugin-datalabels.js"></script>
     <script language="javascript" src="/regl.min.js"></script>
+    <script language="javascript" src="/matter.min.js"></script>
 	<script src="/data.js"></script>
 	<script src="/graphics.js"></script>
 	<script src="/chart_util.js"></script>
@@ -92,11 +93,11 @@
 
 		window.onload = function() {
 
-            dataManager.fetch(get_relevant_search_from_address(window.location.href));
+            orbManager.fetch(get_relevant_search_from_address(window.location.href));
         };
         window.addEventListener('popstate', function(event) {
 
-            dataManager.fetch(get_relevant_search_from_address(window.location.href));
+            orbManager.fetch(get_relevant_search_from_address(window.location.href));
         });
 
 
@@ -105,9 +106,8 @@
 
         var regl = createREGL({})
         drawBatch(regl);
-
-        var dataManager = new DataManager(display_message);
-
+        
+        orbManager.display_message_func = display_message;
 
 	</script>
 </body>

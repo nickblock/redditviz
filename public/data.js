@@ -24,21 +24,18 @@ var data_fetch = async function(search) {
     });
 }
 
-var DataManager = function(display_func) {
-    this.reddits = [];
-    this.display_message_func = display_func;
+var OrbManager = function(fnc) {
+    
+    this.orbs = {};
+    this.maxradius = 0.0;
+    this.display_message_func;
 }
-DataManager.prototype = {
-    add: function(name, data) {
-        this.reddits[name] = data;
-    },
+OrbManager.prototype = {
 
     fetch: async function(search) {
-
-        this.display_message_func("Fetching " + search);
-        if(this.reddits[search] !== undefined) {
-            TheOrbManager.create(this.reddits[search]);
-        }
+        if(orbs[search] != undefined) {
+            this.center(search);
+        } 
         else {
             try {
                 let resp = await data_fetch(search);
@@ -46,14 +43,7 @@ DataManager.prototype = {
                     this.display_message_func(resp.message);
                 }
                 if(resp.data) {
-                    
-                    TheOrbManager.create(resp.data);
-
-                    this.reddits[search] = resp.data;
-    
-                    for(var i=0; i<resp.data.length; i++) {
-                        this.fetch_subs("r/"+resp.data[i].name);
-                    }
+                    this.center(search, resp.data);
                 }
             }
             catch(err) {
@@ -61,21 +51,34 @@ DataManager.prototype = {
             }
         }
     },
-    fetch_subs: async function(search) {
 
-        if(this.reddits[search] !== undefined) {
-            TheOrbManager.append(this.reddits[search]);
-        }
-        else {
-            try {
-                let resp = await data_fetch(search);
-                if(resp.data) {
-                    TheOrbManager.append(resp.data);
-                }
+    center: function(name, data) {
+        
+        this.orbs = {};
+        var count = Math.min(data.length, chart_item_max);
+        for(var i=1; i<count; i++) {
+            this.orbs[data[i].name] = {
+                x: i * (screenSize[0]/count),
+                y: Math.random() * screenSize[1],
+                r: data[i].count
+            };
+            if(data[i].count > this.maxradius) {
+                this.maxradius = data[i].count;
             }
-            catch(err) {
+        }
+    },
+    append: function(data) {
 
-            }
+    },
+    render: function() {
+        var drawArray = [];
+        for(let orb of Object.values(this.orbs)) {
+            drawArray.push({offset:[orb.x, orb.y], scale:orb.r});
         }
+        return drawArray;
     }
 }
+
+
+orbManager = new OrbManager();
+
