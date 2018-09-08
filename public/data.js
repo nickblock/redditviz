@@ -29,6 +29,7 @@ var Engine = Matter.Engine,
     Bodies = Matter.Bodies;
 // create an engine
 var physicsEngine = Matter.Engine.create();
+physicsEngine.world.gravity.scale = 0.0;
 
 var OrbManager = function(fnc) {
     
