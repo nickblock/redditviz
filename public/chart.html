@@ -6,7 +6,7 @@
 	<script src="/Chart.min.js"></script>
 	<script src="/chartjs-plugin-datalabels.js"></script>
     <script language="javascript" src="/regl.min.js"></script>
-	<script src="/batch.js"></script>
+	<script src="/graphics.js"></script>
 	<script src="/chart_util.js"></script>
 	<style type="text/css">
 		#canvas{
@@ -50,7 +50,7 @@
 	<script>
         var graphicsCanvas = document.getElementById('canvas');
         screenSize = [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight];
-        
+
         var regl = createREGL({})
         drawBatch(regl);
 
