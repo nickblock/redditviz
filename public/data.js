@@ -54,6 +54,8 @@ var mutual_dist_multiplier = 0.2;
 var body_friction = 0.01;
 var body_mass = 10;
 
+var index = 0;
+
 var Orb = function(data, primary) {
     var xpos, ypos;
     xpos = screenSize[0]/2.0;
@@ -63,8 +65,9 @@ var Orb = function(data, primary) {
         //distribute orbs randomly around center of screen to start
         xpos -= screenSize[0] * mutual_dist_multiplier * 0.5;
         ypos -= screenSize[1] * mutual_dist_multiplier * 0.5;
-        xpos += Math.random() * screenSize[0] * mutual_dist_multiplier;
-        ypos += Math.random() * screenSize[1] * mutual_dist_multiplier;
+        xpos += /* Math.random() */ index*0.1 * screenSize[0] * mutual_dist_multiplier;
+        ypos += /* Math.random() */ index*0.1 * screenSize[1] * mutual_dist_multiplier;
+
     }
     var body = Matter.Bodies.circle(
         xpos, ypos,
@@ -82,6 +85,12 @@ var Orb = function(data, primary) {
     if(primary) {
         this.subs = data;
     }
+    this.div = document.createElement("div");
+    this.text = document.createTextNode(this.name);
+    this.div.appendChild(this.text);
+    this.div.style.position = "absolute";
+    this.div.style.zIndex = 1
+    document.body.appendChild(this.div);
 }
 Orb.prototype = {
     get_mutual_attraction: function(otherSub) {
@@ -109,6 +118,10 @@ Orb.prototype = {
             }
         }
         return v;
+    },
+    move_text: function() {
+        this.div.style.left = this.body.position.x + "px";
+        this.div.style.bottom = this.body.position.y + "px";
     }
 
 }
@@ -154,7 +167,6 @@ OrbManager.prototype = {
                     var ma = orb.get_mutual_attraction(otherOrb);
                     if(ma !== undefined) {
                         var springlength = (screenSize[0]* mutual_dist_multiplier) - ma;
-                        console.log("ma " + ma);
                         var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
                         this.springs.push(s);
                     }
@@ -196,6 +208,7 @@ OrbManager.prototype = {
                 scale:orb.body.circleRadius,
                 color:orb.color
             });
+            orb.move_text();
         }
         return drawArray;
     }
