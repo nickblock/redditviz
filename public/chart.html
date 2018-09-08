@@ -59,6 +59,9 @@
             //     // fetch_graph_set_history("r/" + activePoints[0]._model.label);
             // }
         }
+        window.addEventListener("mousemove", function(evt) {
+            orbManager.mouse_over(evt.clientX, evt.clientY);
+        });
         document.getElementById("search-button").onclick = function(evt) {
             fetch_graph_set_history("r/" + document.getElementById('search-term').value);
         }

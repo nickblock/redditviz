@@ -24,6 +24,17 @@ var data_fetch = async function(search) {
     });
 }
 
+var distanceSqrd = function(v1, v2) {
+    var d = {
+        x: v1.x - v2.x,
+        y: v1.y - v2.y
+    }
+    return d.x*d.x + d.y*d.y;
+}
+var distance = function(v1, v2) {
+    return Math.sqrt(distanceSqrd(v1, v2));
+}
+
 var Spring = function(bodyA, bodyB, length, strength) {
     this.bodyA = bodyA;
     this.bodyB = bodyB;
@@ -48,12 +59,13 @@ var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
 var size_scale = 0.25;
-var max_item_count = 12;
+var max_item_count = 15;
 var spring_strength = 0.000001;
 var mutual_dist_multiplier = 0.2;
 var body_friction = 0.01;
 var body_mass = 10;
-
+var min_hover_dist = 200;
+var highlight_color = "red"
 var index = 0;
 
 var Orb = function(data, primary) {
@@ -122,6 +134,9 @@ Orb.prototype = {
     move_text: function() {
         this.div.style.left = this.body.position.x + "px";
         this.div.style.bottom = this.body.position.y + "px";
+    },
+    set_text_color: function(color) {
+        this.div.style.color = color;
     }
 
 }
@@ -150,7 +165,7 @@ OrbManager.prototype = {
             }
             catch(err) {
                 console.log(err);
-                this.display_message_func("Couldn't retrieve data for " + search)
+                this.display_message_func("Couldn't retrieve any data for " + search)
             }
         }
     },
@@ -192,6 +207,21 @@ OrbManager.prototype = {
             //prevent collisions
             orb.body.collisionFilter = 1 << i;
             this.orbs[data[i].name] = orb;
+        }
+    },
+    mouse_over: function(mx, my) {
+        var closest = min_hover_dist * min_hover_dist;
+        var closestOrb;
+        for(let orb of Object.values(this.orbs)) {
+            orb.set_text_color("white");
+            var d = distanceSqrd(orb.body.position, {x:mx, y:screenSize[1]-my});
+            if(d < closest) {
+                closest = d;
+                closestOrb = orb;
+            }
+        }
+        if(closestOrb) {
+            closestOrb.set_text_color(highlight_color);
         }
     },
     render: function() {
