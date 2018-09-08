@@ -29,26 +29,35 @@ var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
 var size_scale = 0.1;
+var max_item_count = 12;
+var spring_strength = 0.0000001;
+var mutual_dist_multiplier = 0.2;
+var body_friction = 0.1;
 
 var Orb = function(data, primary) {
     var xpos, ypos;
-    if(primary) {
-        xpos = screenSize[0]/2.0;
-        ypos = screenSize[1]/2.0;
-    }
-    else {
-        xpos = Math.random() * screenSize[0] ;
-        ypos = Math.random() * screenSize[1];
+    xpos = screenSize[0]/2.0;
+    ypos = screenSize[1]/2.0;
+    if(!primary) {
+
+        //distribute orbs randomly around center of screen to start
+        xpos -= screenSize[0] * mutual_dist_multiplier * 0.5;
+        ypos -= screenSize[1] * mutual_dist_multiplier * 0.5;
+        xpos += Math.random() * screenSize[0] * mutual_dist_multiplier;
+        ypos += Math.random() * screenSize[1] * mutual_dist_multiplier;
     }
     var body = Matter.Bodies.circle(
         xpos, ypos,
-        data.count * size_scale
+        data.count * size_scale, {
+            frictionAir: body_friction
+        }
     )
     Matter.World.add(physicsEngine.world, body);
     
     this.body = body;
     this.name = data.name;
     this.subs = undefined;
+
     if(primary) {
         this.subs = data;
     }
@@ -60,7 +69,7 @@ Orb.prototype = {
             var attr = this.get_attraction(otherSub.name);
             if(attr !== undefined) {
                 var mutual = Math.min(other_attr, attr);
-                mutual = Math.max(0, mutual - Math.abs(other_attr, attr));
+                mutual = Math.max(0, mutual - Math.abs(other_attr - attr));
 
                 return mutual;
             }
@@ -103,10 +112,9 @@ Spring.prototype = {
     }
 }
 
-var OrbManager = function(fnc) {
+var OrbManager = function() {
     
     this.orbs = {};
-    this.maxradius = 0.0;
     this.display_message_func;
     this.springs = [];
 }
@@ -143,8 +151,9 @@ OrbManager.prototype = {
 
                     var ma = orb.get_mutual_attraction(otherOrb);
                     if(ma !== undefined) {
-                        var s = new Spring(orb.body, otherOrb.body, (screenSize[0]/5.0) - ma, 0.0000001);
-                        s.update();
+                        var springlength = (screenSize[0]* mutual_dist_multiplier) - ma;
+                        console.log("ma " + ma);
+                        var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
                         this.springs.push(s);
                     }
                 }
@@ -158,14 +167,14 @@ OrbManager.prototype = {
     center: function(name, data) {
         
         this.orbs = {};
-        var count = Math.min(data.length, 10);
+        var count = Math.min(data.length, max_item_count);
         for(var i=0; i<count; i++) {
             var isPrimary = data[i].name == name.replace("r/", "");
-            if(data[i].name == "unrealengine") continue;
             var orb = new Orb(data[i], isPrimary);
             if(!isPrimary) {
                 this.fetch_subs(orb);
             }
+            orb.body.collisionFilter = 1 << i;
             this.orbs[data[i].name] = orb;
         }
     },
