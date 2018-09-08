@@ -65,8 +65,8 @@ var Orb = function(data, primary) {
         //distribute orbs randomly around center of screen to start
         xpos -= screenSize[0] * mutual_dist_multiplier * 0.5;
         ypos -= screenSize[1] * mutual_dist_multiplier * 0.5;
-        xpos += /* Math.random() */ index*0.1 * screenSize[0] * mutual_dist_multiplier;
-        ypos += /* Math.random() */ index*0.1 * screenSize[1] * mutual_dist_multiplier;
+        xpos += Math.random() * screenSize[0] * mutual_dist_multiplier;
+        ypos += Math.random() * screenSize[1] * mutual_dist_multiplier;
 
     }
     var body = Matter.Bodies.circle(
