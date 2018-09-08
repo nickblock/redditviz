@@ -24,7 +24,26 @@ var data_fetch = async function(search) {
     });
 }
 
-// create an engine
+var Spring = function(bodyA, bodyB, length, strength) {
+    this.bodyA = bodyA;
+    this.bodyB = bodyB;
+    this.length = length;
+    this.strength = strength;
+}
+Spring.prototype = {
+    update: function() {
+        var v = {
+            x: this.bodyA.position.x - this.bodyB.position.x,
+            y: this.bodyA.position.y - this.bodyB.position.y
+        }
+        var l = Math.sqrt(v.x*v.x + v.y*v.y);
+        var f = (l - this.length) * this.strength;
+
+        Matter.Body.applyForce(this.bodyA, this.bodyA.position, {x:-v.x*f, y:-v.y*f});
+        Matter.Body.applyForce(this.bodyB, this.bodyB.position, {x:v.x*f, y:v.y*f});
+    }
+}
+
 var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
@@ -92,26 +111,6 @@ Orb.prototype = {
 
 }
 
-var Spring = function(bodyA, bodyB, length, strength) {
-    this.bodyA = bodyA;
-    this.bodyB = bodyB;
-    this.length = length;
-    this.strength = strength;
-}
-Spring.prototype = {
-    update: function() {
-        var v = {
-            x: this.bodyA.position.x - this.bodyB.position.x,
-            y: this.bodyA.position.y - this.bodyB.position.y
-        }
-        var l = Math.sqrt(v.x*v.x + v.y*v.y);
-        var f = (l - this.length) * this.strength;
-
-        Matter.Body.applyForce(this.bodyA, this.bodyA.position, {x:-v.x*f, y:-v.y*f});
-        Matter.Body.applyForce(this.bodyB, this.bodyB.position, {x:v.x*f, y:v.y*f});
-    }
-}
-
 var OrbManager = function() {
     
     this.orbs = {};
@@ -174,6 +173,7 @@ OrbManager.prototype = {
             if(!isPrimary) {
                 this.fetch_subs(orb);
             }
+            //prevent collisions
             orb.body.collisionFilter = 1 << i;
             this.orbs[data[i].name] = orb;
         }
