@@ -149,11 +149,15 @@ var OrbManager = function() {
     
     this.orbs = {};
     this.display_message_func;
+    this.push_history_func;
     this.springs = [];
 }
 OrbManager.prototype = {
 
-    fetch: async function(search) {
+    fetch: async function(search, push_history) {
+        if(push_history) {
+            this.push_history_func(search);
+        }
         if(orbs[search] != undefined) {
             this.center(search, orbs[search].subs);
         } 
@@ -215,7 +219,7 @@ OrbManager.prototype = {
                 deleteOrbs.push(orb);
             }
         }
-        for(var i=0; i<deleteOrbs; i++) {
+        for(var i=0; i<deleteOrbs.length; i++) {
             deleteOrbs[i].remove();
         }
     },
@@ -270,7 +274,7 @@ OrbManager.prototype = {
     mouse_click: function(mx, my) {
         var closestOrb = this.find_orb(mx, my);
         if(closestOrb) {
-            this.fetch("r/" + closestOrb.name);
+            this.fetch("r/" + closestOrb.name, true);
         }
     },
     render: function() {

@@ -62,6 +62,9 @@
         window.addEventListener("mousemove", function(evt) {
             orbManager.mouse_over(evt.clientX, evt.clientY);
         });
+        window.addEventListener("click", function(evt) {
+            orbManager.mouse_click(evt.clientX, evt.clientY);
+        });
         document.getElementById("search-button").onclick = function(evt) {
             fetch_graph_set_history("r/" + document.getElementById('search-term').value);
         }
@@ -87,20 +90,21 @@
         var display_message = function(input) {
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
+        var push_history = function(search) {
+            window.history.pushState({search:search}, "Title", create_url_from_search(search));
+        }
 
         var fetch_graph_set_history = function(search) {
-
-            window.history.pushState({search:search}, "Title", create_url_from_search(search));
-            fetch_graph(search);
+            orbManager.fetch(search, true);
         }
 
 		window.onload = function() {
 
-            orbManager.fetch(get_relevant_search_from_address(window.location.href));
+            orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
         };
         window.addEventListener('popstate', function(event) {
 
-            orbManager.fetch(get_relevant_search_from_address(window.location.href));
+            orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
         });
 
 
@@ -111,6 +115,7 @@
         drawBatch(regl);
         
         orbManager.display_message_func = display_message;
+        orbManager.push_history_func = push_history;
 
 	</script>
 </body>
