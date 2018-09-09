@@ -137,6 +137,10 @@ Orb.prototype = {
     },
     set_text_color: function(color) {
         this.div.style.color = color;
+    },
+    remove: function() {
+        document.removeChild(this.div);
+        Matter.World.remove(physicsEngine.world, this.body);
     }
 
 }
@@ -151,7 +155,7 @@ OrbManager.prototype = {
 
     fetch: async function(search) {
         if(orbs[search] != undefined) {
-            this.center(search);
+            this.center(search, orbs[search].subs);
         } 
         else {
             try {
@@ -169,22 +173,33 @@ OrbManager.prototype = {
             }
         }
     },
+    create_spring: function(orb, otherOrb) {
+
+        if(otherOrb.name == orb.name || otherOrb.subs == undefined) return;
+
+        var ma = orb.get_mutual_attraction(otherOrb);
+        if(ma !== undefined) {
+            var springlength = (screenSize[0]* mutual_dist_multiplier) - ma;
+            var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
+            this.springs.push(s);
+        }
+    },
+    create_all_springs: function() {
+        var names = Object.keys(this.orbs);
+        for(var i=0; i<names.length; i++) {
+            for(var j=i+1; j<names.length; j++) {
+                this.create_spring(this.orbs[names[i]], this.orbs[names[j]]);
+            }
+        }
+    },
     fetch_subs: async function(orb) {
 
         try {
             let resp = await data_fetch("r/" + orb.name);
             if(resp.data) {
                 orb.subs = resp.data;
-
-                for(otherOrb of Object.values(this.orbs)) {
-                    if(otherOrb.name == orb.name || otherOrb.subs == undefined) continue;
-
-                    var ma = orb.get_mutual_attraction(otherOrb);
-                    if(ma !== undefined) {
-                        var springlength = (screenSize[0]* mutual_dist_multiplier) - ma;
-                        var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
-                        this.springs.push(s);
-                    }
+                for(let otherOrb of Object.values(this.orbs)) {
+                    this.create_spring(orb, otherOrb);
                 }
             }
         }
@@ -193,35 +208,69 @@ OrbManager.prototype = {
         }
     },
 
-    center: function(name, data) {
-        
-        this.orbs = {};
+    remove_prev_orbs: function(newOrbs) {
+        var deleteOrbs = [];
+        for(let orb of Object.values(this.orbs)) {
+            if(!newOrbs.hasOwnProperty(orb.name)) {
+                deleteOrbs.push(orb);
+            }
+        }
+        for(var i=0; i<deleteOrbs; i++) {
+            deleteOrbs[i].remove();
+        }
+    },
+
+    center: function(search, data) {
+        this.springs = [];
+        var newOrbs = {};
         var count = Math.min(data.length, max_item_count);
         for(var i=0; i<count; i++) {
-            var isPrimary = data[i].name == name.replace("r/", "");
-            var orb = new Orb(data[i], isPrimary);
-            orb.color = colors[i%colors.length];
-            if(!isPrimary) {
-                this.fetch_subs(orb);
+            var dataItem = data[i];
+            var isPrimary = dataItem.name == search.replace("r/", "");
+            var orb;
+            if(this.orbs.hasOwnProperty(dataItem.name)) {
+                orb = this.orbs[dataItem.name];
+            }
+            else {
+                orb = new Orb(dataItem, isPrimary);
+                orb.color = colors[i%colors.length];
+                if(!isPrimary) {
+                    this.fetch_subs(orb);
+                }
             }
             //prevent collisions
             orb.body.collisionFilter = 1 << i;
-            this.orbs[data[i].name] = orb;
+            newOrbs[dataItem.name] = orb;
         }
+        this.remove_prev_orbs(newOrbs);
+        this.orbs = newOrbs;
+        this.create_all_springs();
     },
-    mouse_over: function(mx, my) {
+    find_orb: function(mx, my) {
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
-            orb.set_text_color("white");
             var d = distanceSqrd(orb.body.position, {x:mx, y:screenSize[1]-my});
             if(d < closest) {
                 closest = d;
                 closestOrb = orb;
             }
         }
+        return closestOrb
+    },
+    mouse_over: function(mx, my) {
+        for(let orb of Object.values(this.orbs)) {
+            orb.set_text_color("white");
+        }
+        var closestOrb = this.find_orb(mx, my);
         if(closestOrb) {
             closestOrb.set_text_color(highlight_color);
+        }
+    },
+    mouse_click: function(mx, my) {
+        var closestOrb = this.find_orb(mx, my);
+        if(closestOrb) {
+            this.fetch("r/" + closestOrb.name);
         }
     },
     render: function() {
