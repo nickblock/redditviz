@@ -139,7 +139,7 @@ Orb.prototype = {
         this.div.style.color = color;
     },
     remove: function() {
-        document.removeChild(this.div);
+        document.body.removeChild(this.div);
         Matter.World.remove(physicsEngine.world, this.body);
     }
 
