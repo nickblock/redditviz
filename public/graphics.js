@@ -1,4 +1,5 @@
- var screenSize = [1.0, 1.0];
+var screen_size = [1.0, 1.0];
+var screen_scalec = 1.42;
 
 //  var colors = [
 //     [44/255.0, 19/255.0, 32/255.0, 1.0],
@@ -15,14 +16,20 @@ var colors = [
     [176/255, 149/255, 126/255, 1.0],
 ]
 
-var circlePoints = 100;
+var circlePoints = 4;
+
+var setScreenSize = function(size) {
+  screen_size = size;
+  screen_scale = distance({x:0, y:0}, {x:screen_size[0], y:screen_size[1]});
+}
 
 var genCircleAttributes = function(r, p) {
     var attributes = [0.0, 0.0, 0.0];
     var frac = (Math.PI*2.0)/p;
+    var quarter = Math.PI/4.0;
     for(var i=0; i<p; i++) {
-        attributes.push(r * Math.cos(i * frac));
-        attributes.push(r * Math.sin(i * frac));
+        attributes.push(r * Math.cos(i * frac + quarter));
+        attributes.push(r * Math.sin(i * frac + quarter));
         attributes.push(1.0); //last element used as color-outline in shader
     }
     return attributes;
@@ -43,16 +50,17 @@ const draw = regl({
   frag: `
     precision mediump float;
     uniform vec4 color;
+    uniform float scale;
     varying float outside;
     void main() {
-        // if(outside > 0.98) {
-        //     gl_FragColor = vec4(0,0,0,1);
-        // }
-        // else {
-        //     gl_FragColor = color;
-        // }
+        if(outside > (0.98)) {
+            gl_FragColor = vec4(0,0,0,1);
+        }
+        else {
+            gl_FragColor = color;
+        }
         
-       gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
+      //  gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
     }`,
 
   vert: `
@@ -81,7 +89,7 @@ const draw = regl({
     color: regl.prop('color'),
     offset: regl.prop('offset'),
     scale: regl.prop('scale'),
-    screenSize: screenSize
+    screenSize: screen_size
   },
 
   depth: {

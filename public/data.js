@@ -58,11 +58,11 @@ Spring.prototype = {
 var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
-var size_scale = 0.25;
+var size_scale = 0.001;
 var max_item_count = 15;
 var spring_strength = 0.000001;
 var mutual_dist_multiplier = 0.2;
-var body_friction = 0.01;
+var body_friction = 0.2;
 var body_mass = 10;
 var min_hover_dist = 200;
 var highlight_color = "red"
@@ -70,20 +70,20 @@ var index = 0;
 
 var Orb = function(data, primary) {
     var xpos, ypos;
-    xpos = screenSize[0]/2.0;
-    ypos = screenSize[1]/2.0;
+    xpos = screen_size[0]/2.0;
+    ypos = screen_size[1]/2.0;
     if(!primary) {
 
         //distribute orbs randomly around center of screen to start
-        xpos -= screenSize[0] * mutual_dist_multiplier * 0.5;
-        ypos -= screenSize[1] * mutual_dist_multiplier * 0.5;
-        xpos += Math.random() * screenSize[0] * mutual_dist_multiplier;
-        ypos += Math.random() * screenSize[1] * mutual_dist_multiplier;
+        xpos -= screen_size[0] * mutual_dist_multiplier * 0.5;
+        ypos -= screen_size[1] * mutual_dist_multiplier * 0.5;
+        xpos += Math.random() * screen_size[0] * mutual_dist_multiplier;
+        ypos += Math.random() * screen_size[1] * mutual_dist_multiplier;
 
     }
     var body = Matter.Bodies.circle(
         xpos, ypos,
-        data.count * size_scale, {
+        this.calculate_radius(data.count), {
             frictionAir: body_friction,
             mass: body_mass
         }
@@ -97,12 +97,7 @@ var Orb = function(data, primary) {
     if(primary) {
         this.subs = data;
     }
-    this.div = document.createElement("div");
-    this.text = document.createTextNode(this.name);
-    this.div.appendChild(this.text);
-    this.div.style.position = "absolute";
-    this.div.style.zIndex = 1
-    document.body.appendChild(this.div);
+    this.create_text_element();
 }
 Orb.prototype = {
     get_mutual_attraction: function(otherSub) {
@@ -131,12 +126,23 @@ Orb.prototype = {
         }
         return v;
     },
+    create_text_element: function() {
+        this.div = document.createElement("div");
+        this.text = document.createTextNode(this.name);
+        this.div.appendChild(this.text);
+        this.div.style.position = "absolute";
+        this.div.style.zIndex = 1
+        document.body.appendChild(this.div);
+    },
     move_text: function() {
         this.div.style.left = this.body.position.x + "px";
         this.div.style.bottom = this.body.position.y + "px";
     },
     set_text_color: function(color) {
         this.div.style.color = color;
+    },
+    calculate_radius: function(size) {
+        return size * mutual_dist_multiplier * size_scale;
     },
     remove: function() {
         document.body.removeChild(this.div);
@@ -154,6 +160,33 @@ var OrbManager = function() {
 }
 OrbManager.prototype = {
 
+
+    center: function(search, data) {
+        this.springs = [];
+        var newOrbs = {};
+        var count = Math.min(data.length, max_item_count);
+        for(var i=0; i<count; i++) {
+            var dataItem = data[i];
+            var isPrimary = dataItem.name == search.replace("r/", "");
+            var orb;
+            if(this.orbs.hasOwnProperty(dataItem.name)) {
+                orb = this.orbs[dataItem.name];
+            }
+            else {
+                orb = new Orb(dataItem, isPrimary);
+                orb.color = colors[i%colors.length];
+                if(!isPrimary) {
+                    this.fetch_subs(orb);
+                }
+            }
+            //prevent collisions
+            orb.body.collisionFilter = 1 << i;
+            newOrbs[dataItem.name] = orb;
+        }
+        this.remove_prev_orbs(newOrbs);
+        this.orbs = newOrbs;
+        this.create_all_springs();
+    },
     fetch: async function(search, push_history) {
         if(push_history) {
             this.push_history_func(search);
@@ -183,7 +216,7 @@ OrbManager.prototype = {
 
         var ma = orb.get_mutual_attraction(otherOrb);
         if(ma !== undefined) {
-            var springlength = (screenSize[0]* mutual_dist_multiplier) - ma;
+            var springlength = (screen_scale * mutual_dist_multiplier) - ma;
             var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
             this.springs.push(s);
         }
@@ -224,37 +257,11 @@ OrbManager.prototype = {
         }
     },
 
-    center: function(search, data) {
-        this.springs = [];
-        var newOrbs = {};
-        var count = Math.min(data.length, max_item_count);
-        for(var i=0; i<count; i++) {
-            var dataItem = data[i];
-            var isPrimary = dataItem.name == search.replace("r/", "");
-            var orb;
-            if(this.orbs.hasOwnProperty(dataItem.name)) {
-                orb = this.orbs[dataItem.name];
-            }
-            else {
-                orb = new Orb(dataItem, isPrimary);
-                orb.color = colors[i%colors.length];
-                if(!isPrimary) {
-                    this.fetch_subs(orb);
-                }
-            }
-            //prevent collisions
-            orb.body.collisionFilter = 1 << i;
-            newOrbs[dataItem.name] = orb;
-        }
-        this.remove_prev_orbs(newOrbs);
-        this.orbs = newOrbs;
-        this.create_all_springs();
-    },
     find_orb: function(mx, my) {
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
-            var d = distanceSqrd(orb.body.position, {x:mx, y:screenSize[1]-my});
+            var d = distanceSqrd(orb.body.position, {x:mx, y:screen_size[1]-my});
             if(d < closest) {
                 closest = d;
                 closestOrb = orb;
@@ -288,7 +295,7 @@ OrbManager.prototype = {
         for(let orb of Object.values(this.orbs)) {
             drawArray.push({
                 offset:[orb.body.position.x, orb.body.position.y], 
-                scale:orb.body.circleRadius,
+                scale:orb.body.circleRadius * screen_scale,
                 color:orb.color
             });
             orb.move_text();

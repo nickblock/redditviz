@@ -50,6 +50,9 @@
         
 	</div>
 	<script>
+
+        var graphicsCanvas = document.getElementById('canvas');
+        
         document.getElementById('canvas').onclick = function(evt) {
             var orb = FindOrb(evt.layerX, evt.layerY);
             console.log("x:" + evt.layerX + " y:" + evt.layerY + " " +orb.l);
@@ -62,6 +65,9 @@
         window.addEventListener("mousemove", function(evt) {
             orbManager.mouse_over(evt.clientX, evt.clientY);
         });
+        window.addEventListener("resize", function(evt) {
+            setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
+        })
         window.addEventListener("click", function(evt) {
             orbManager.mouse_click(evt.clientX, evt.clientY);
         });
@@ -107,9 +113,7 @@
             orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
         });
 
-
-        var graphicsCanvas = document.getElementById('canvas');
-        screenSize = [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight];
+        setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
 
         var regl = createREGL({})
         drawBatch(regl);
