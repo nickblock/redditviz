@@ -63,13 +63,13 @@
             // }
         }
         window.addEventListener("mousemove", function(evt) {
-            orbManager.mouse_over(evt.clientX/screen_size[0], evt.clientY/screen_size[1]);
+            orbManager.mouse_over(evt.clientX/screen_scale, evt.clientY/screen_scale);
         });
         window.addEventListener("resize", function(evt) {
             setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
         })
         window.addEventListener("click", function(evt) {
-            orbManager.mouse_click(evt.clientX, evt.clientY);
+            orbManager.mouse_click(evt.clientX/screen_scale, evt.clientY/screen_scale);
         });
         document.getElementById("search-button").onclick = function(evt) {
             fetch_graph_set_history("r/" + document.getElementById('search-term').value);

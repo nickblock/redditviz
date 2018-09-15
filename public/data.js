@@ -61,25 +61,16 @@ physicsEngine.world.gravity.scale = 0.0;
 var world_size = 10;
 var size_scale = 0.001;
 var max_item_count = 15;
-var spring_strength = 0.00001;
-var mutual_dist_multiplier = 0.4;
+var spring_strength = 0.00005;
+var mutual_dist_multiplier = 0.6;
 var body_friction = 0.2;
 var body_mass = 10;
-var min_hover_dist = 200;
+var min_hover_dist = world_size / 10;
 var highlight_color = "red"
 var index = 0;
 
-var Orb = function(data, primary) {
-    var xpos, ypos;
-    xpos = world_size * 0.5;
-    ypos = world_size * 0.5;
-    if(!primary) {
-
-        //distribute orbs randomly around center of screen to start
-        xpos = world_size * Math.random();
-        ypos = world_size * Math.random();
-
-    }
+var Orb = function(xpos, ypos, data, primary) {
+    
     var body = Matter.Bodies.circle(
         xpos, ypos,
         this.calculate_radius(data.count), {
@@ -95,6 +86,8 @@ var Orb = function(data, primary) {
 
     if(primary) {
         this.subs = data;
+
+        // Matter.Body.setStatic(this.body, true);
     }
     this.create_text_element();
 }
@@ -172,7 +165,17 @@ OrbManager.prototype = {
                 orb = this.orbs[dataItem.name];
             }
             else {
-                orb = new Orb(dataItem, isPrimary);
+                var xpos, ypos;
+                xpos = world_size * 0.5;
+                ypos = world_size * 0.5;
+                if(!isPrimary) {
+            
+                    //distribute orbs randomly around center of screen to start
+                    xpos = world_size * Math.random();
+                    ypos = world_size * Math.random();
+            
+                }
+                orb = new Orb(xpos, ypos, dataItem, isPrimary);
                 orb.color = colors[i%colors.length];
                 if(!isPrimary) {
                     this.fetch_subs(orb);
@@ -210,6 +213,8 @@ OrbManager.prototype = {
         }
     },
     create_spring: function(orb, otherOrb) {
+
+        return;
 
         if(otherOrb.name == orb.name || otherOrb.subs == undefined) return;
 

@@ -1,5 +1,5 @@
 var screen_size = [1.0, 1.0];
-var screen_scale = 1.42;
+var screen_scale = 1.0;
 
 //  var colors = [
 //     [44/255.0, 19/255.0, 32/255.0, 1.0],
