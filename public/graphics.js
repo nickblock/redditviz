@@ -1,5 +1,5 @@
 var screen_size = [1.0, 1.0];
-var screen_scalec = 1.42;
+var screen_scale = 1.42;
 
 //  var colors = [
 //     [44/255.0, 19/255.0, 32/255.0, 1.0],
@@ -20,7 +20,8 @@ var circlePoints = 4;
 
 var setScreenSize = function(size) {
   screen_size = size;
-  screen_scale = distance({x:0, y:0}, {x:screen_size[0], y:screen_size[1]});
+  // screen_scale = distance({x:0, y:0}, {x:screen_size[0], y:screen_size[1]});
+  screen_scale = Math.min(screen_size[0], screen_size[1]);
 }
 
 var genCircleAttributes = function(r, p) {

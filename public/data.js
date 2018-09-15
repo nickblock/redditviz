@@ -58,10 +58,11 @@ Spring.prototype = {
 var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
+var world_size = 10;
 var size_scale = 0.001;
 var max_item_count = 15;
-var spring_strength = 0.000001;
-var mutual_dist_multiplier = 0.2;
+var spring_strength = 0.00001;
+var mutual_dist_multiplier = 0.4;
 var body_friction = 0.2;
 var body_mass = 10;
 var min_hover_dist = 200;
@@ -70,15 +71,13 @@ var index = 0;
 
 var Orb = function(data, primary) {
     var xpos, ypos;
-    xpos = screen_size[0]/2.0;
-    ypos = screen_size[1]/2.0;
+    xpos = world_size * 0.5;
+    ypos = world_size * 0.5;
     if(!primary) {
 
         //distribute orbs randomly around center of screen to start
-        xpos -= screen_size[0] * mutual_dist_multiplier * 0.5;
-        ypos -= screen_size[1] * mutual_dist_multiplier * 0.5;
-        xpos += Math.random() * screen_size[0] * mutual_dist_multiplier;
-        ypos += Math.random() * screen_size[1] * mutual_dist_multiplier;
+        xpos = world_size * Math.random();
+        ypos = world_size * Math.random();
 
     }
     var body = Matter.Bodies.circle(
@@ -134,15 +133,15 @@ Orb.prototype = {
         this.div.style.zIndex = 1
         document.body.appendChild(this.div);
     },
-    move_text: function() {
-        this.div.style.left = this.body.position.x + "px";
-        this.div.style.bottom = this.body.position.y + "px";
+    move_text: function(scale) {
+        this.div.style.left = scale * this.body.position.x / world_size + "px";
+        this.div.style.bottom = scale * this.body.position.y / world_size + "px";
     },
     set_text_color: function(color) {
         this.div.style.color = color;
     },
     calculate_radius: function(size) {
-        return size * mutual_dist_multiplier * size_scale;
+        return size * size_scale * world_size;
     },
     remove: function() {
         document.body.removeChild(this.div);
@@ -216,7 +215,7 @@ OrbManager.prototype = {
 
         var ma = orb.get_mutual_attraction(otherOrb);
         if(ma !== undefined) {
-            var springlength = (screen_scale * mutual_dist_multiplier) - ma;
+            var springlength = Math.max(0.0, (mutual_dist_multiplier * world_size) - ma);
             var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
             this.springs.push(s);
         }
@@ -258,10 +257,12 @@ OrbManager.prototype = {
     },
 
     find_orb: function(mx, my) {
+        mx = mx * world_size;
+        my = (1.0 - my) * world_size;
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
-            var d = distanceSqrd(orb.body.position, {x:mx, y:screen_size[1]-my});
+            var d = distanceSqrd(orb.body.position, {x:mx, y:my});
             if(d < closest) {
                 closest = d;
                 closestOrb = orb;
@@ -294,11 +295,13 @@ OrbManager.prototype = {
         var drawArray = [];
         for(let orb of Object.values(this.orbs)) {
             drawArray.push({
-                offset:[orb.body.position.x, orb.body.position.y], 
-                scale:orb.body.circleRadius * screen_scale,
+                offset:[
+                    orb.body.position.x * screen_scale / world_size, 
+                    orb.body.position.y * screen_scale / world_size], 
+                scale:orb.body.circleRadius * screen_scale / world_size,
                 color:orb.color
             });
-            orb.move_text();
+            orb.move_text(screen_scale);
         }
         return drawArray;
     }
