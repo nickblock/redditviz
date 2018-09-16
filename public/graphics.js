@@ -55,9 +55,15 @@ const draw = regl({
     precision mediump float;
     uniform vec4 color;
     uniform float scale;
+    uniform float border_size;
     varying float outside;
+
+    bool inBorder() {
+      float distToEdge = (1.0 - outside) * scale;
+      return distToEdge < border_size;
+    }
     void main() {
-        if(outside > (0.98)) {
+        if(inBorder()) {
             gl_FragColor = vec4(0,0,0,1);
         }
         else {
@@ -93,7 +99,8 @@ const draw = regl({
     color: regl.prop('color'),
     offset: regl.prop('offset'),
     scale: regl.prop('scale'),
-    screen_ratio: regl.prop('screen_ratio')
+    screen_ratio: regl.prop('screen_ratio'),
+    border_size: regl.prop('border_size'),
   },
 
   depth: {

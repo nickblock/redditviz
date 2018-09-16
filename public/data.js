@@ -60,6 +60,7 @@ physicsEngine.world.gravity.scale = 0.0;
 
 var world_size = 10;
 var size_scale = 0.001;
+var border_size = 3;
 var max_item_count = 15;
 var spring_strength = 0.00005;
 var mutual_dist_multiplier = 0.6;
@@ -305,7 +306,8 @@ OrbManager.prototype = {
                     orb.body.position.y / world_size], 
                 scale:orb.body.circleRadius / world_size,
                 color:orb.color,
-                screen_ratio: screen_ratio
+                screen_ratio: screen_ratio,
+                border_size: border_size / screen_scale
             });
             orb.move_text(screen_scale);
         }
