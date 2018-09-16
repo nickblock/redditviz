@@ -171,8 +171,8 @@ OrbManager.prototype = {
                 if(!isPrimary) {
             
                     //distribute orbs randomly around center of screen to start
-                    xpos = world_size * Math.random();
-                    ypos = world_size * Math.random();
+                    xpos = world_size * (i/count)//Math.random();
+                    ypos = world_size * (i/count)//Math.random();
             
                 }
                 orb = new Orb(xpos, ypos, dataItem, isPrimary);
@@ -301,10 +301,11 @@ OrbManager.prototype = {
         for(let orb of Object.values(this.orbs)) {
             drawArray.push({
                 offset:[
-                    orb.body.position.x * screen_scale / world_size, 
-                    orb.body.position.y * screen_scale / world_size], 
-                scale:orb.body.circleRadius * screen_scale / world_size,
-                color:orb.color
+                    orb.body.position.x / world_size, 
+                    orb.body.position.y / world_size], 
+                scale:orb.body.circleRadius / world_size,
+                color:orb.color,
+                screen_ratio: screen_ratio
             });
             orb.move_text(screen_scale);
         }

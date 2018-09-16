@@ -1,5 +1,6 @@
 var screen_size = [1.0, 1.0];
 var screen_scale = 1.0;
+var screen_ratio = 1.0;
 
 //  var colors = [
 //     [44/255.0, 19/255.0, 32/255.0, 1.0],
@@ -22,6 +23,8 @@ var setScreenSize = function(size) {
   screen_size = size;
   // screen_scale = distance({x:0, y:0}, {x:screen_size[0], y:screen_size[1]});
   screen_scale = Math.min(screen_size[0], screen_size[1]);
+
+  screen_ratio = screen_size[1] / screen_size[0];
 }
 
 var genCircleAttributes = function(r, p) {
@@ -69,11 +72,11 @@ const draw = regl({
     attribute vec3 position;
     uniform float scale;
     uniform vec2 offset;
-    uniform vec2 screenSize;
+    uniform float screen_ratio;
     varying float outside;
     void main() {
         vec2 pos = (vec2(position.x, position.y) * scale) + offset;
-        pos = pos / screenSize;
+        pos.x = pos.x * screen_ratio;
         pos = (pos * 2.0) - vec2(1.0);
         gl_Position = vec4(pos, 0.0, 1.0);
         outside = position.z;
@@ -90,7 +93,7 @@ const draw = regl({
     color: regl.prop('color'),
     offset: regl.prop('offset'),
     scale: regl.prop('scale'),
-    screenSize: screen_size
+    screen_ratio: regl.prop('screen_ratio')
   },
 
   depth: {
@@ -103,9 +106,8 @@ const draw = regl({
 regl.frame(function () {
   regl.clear({
     color: [0.7, 0.7, 0.7, 1]
-  })
-
-  draw(orbManager.render())
+  });
+  draw(orbManager.render());
 });
 
 }
