@@ -1,0 +1,25 @@
+{
+  "name": "redditviz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "chart.js": "^2.7.2",
+    "encoding": "^0.1.12",
+    "express": "^4.16.3",
+    "iconv": "^2.3.0",
+    "node-fetch": "^2.2.0",
+    "redis": "^2.8.0",
+    "validator": "^10.6.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://nick@185.214.140.112:2222/home/nick/repos/redditviz/.git"
+  },
+  "author": "",
+  "license": "ISC"
+}
