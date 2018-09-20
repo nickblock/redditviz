@@ -70,29 +70,38 @@ var min_hover_dist = world_size / 10;
 var highlight_color = "red"
 var index = 0;
 
-var Orb = function(xpos, ypos, data, primary) {
+var Orb = function(index, data, is_primary) {
     
-    var body = Matter.Bodies.circle(
+    var xpos, ypos;
+    xpos = world_size * 0.5;
+    ypos = world_size * 0.5;
+    if(!is_primary) {
+        [xpos, ypos] = this.spawn_pos(index);
+    }
+    this.color = colors[index%colors.length];
+    
+    this.name = data.name;
+    this.subs = data;
+    this.body = Matter.Bodies.circle(
         xpos, ypos,
         this.calculate_radius(data.count), {
             frictionAir: body_friction,
             mass: body_mass
         }
     )
-    Matter.World.add(physicsEngine.world, body);
-    
-    this.body = body;
-    this.name = data.name;
-    this.subs = undefined;
-
-    if(primary) {
-        this.subs = data;
-
-        // Matter.Body.setStatic(this.body, true);
-    }
-    this.create_text_element();
+    //prevent collisions
+    this.body.collisionFilter = 1 << index;
+    this.add();
 }
 Orb.prototype = {
+    spawn_pos: function(index) {
+
+        //distribute orbs randomly around center of screen to start
+        xpos = world_size * Math.random();// (i/count);
+        ypos = world_size * Math.random();// (i/count);
+
+        return [xpos, ypos];
+    },
     get_mutual_attraction: function(otherSub) {
         var other_attr = otherSub.get_attraction(this.name);
         if(other_attr !== undefined) {
@@ -128,18 +137,32 @@ Orb.prototype = {
         document.body.appendChild(this.div);
     },
     move_text: function(scale) {
-        this.div.style.left = scale * this.body.position.x / world_size + "px";
-        this.div.style.bottom = scale * this.body.position.y / world_size + "px";
+        if(this.added) {
+            this.div.style.left = scale * this.body.position.x / world_size + "px";
+            this.div.style.bottom = scale * this.body.position.y / world_size + "px";
+        }
     },
     set_text_color: function(color) {
-        this.div.style.color = color;
+        if(this.added) {
+            this.div.style.color = color;
+        }
     },
     calculate_radius: function(size) {
         return size * size_scale * world_size;
     },
+    add: function() {
+        this.create_text_element();
+        Matter.World.add(physicsEngine.world, this.body);
+        this.added = true;
+    },
     remove: function() {
+        
+        if(!this.added) return;
+
+        console.log("remove " + this.name)
         document.body.removeChild(this.div);
         Matter.World.remove(physicsEngine.world, this.body);
+        this.added = false;
     }
 
 }
@@ -153,49 +176,38 @@ var OrbManager = function() {
 }
 OrbManager.prototype = {
 
-
-    center: function(search, data) {
+    init: function(search, data) {
         this.springs = [];
         var newOrbs = {};
         var count = Math.min(data.length, max_item_count);
         for(var i=0; i<count; i++) {
-            var dataItem = data[i];
-            var isPrimary = dataItem.name == search.replace("r/", "");
+            var sub_data = data[i];
+            var is_primary = sub_data.name == search.replace("r/", "");
             var orb;
-            if(this.orbs.hasOwnProperty(dataItem.name)) {
-                orb = this.orbs[dataItem.name];
+
+            if(this.orbs.hasOwnProperty(sub_data.name)) {
+                orb = this.orbs[sub_data.name];
             }
             else {
-                var xpos, ypos;
-                xpos = world_size * 0.5;
-                ypos = world_size * 0.5;
-                if(!isPrimary) {
-            
-                    //distribute orbs randomly around center of screen to start
-                    xpos = world_size * (i/count)//Math.random();
-                    ypos = world_size * (i/count)//Math.random();
-            
-                }
-                orb = new Orb(xpos, ypos, dataItem, isPrimary);
-                orb.color = colors[i%colors.length];
-                if(!isPrimary) {
+                orb = new Orb(i, sub_data, is_primary);
+                
+                if(!is_primary) {
                     this.fetch_subs(orb);
                 }
             }
-            //prevent collisions
-            orb.body.collisionFilter = 1 << i;
-            newOrbs[dataItem.name] = orb;
+            newOrbs[sub_data.name] = orb;
         }
         this.remove_prev_orbs(newOrbs);
         this.orbs = newOrbs;
         this.create_all_springs();
     },
     fetch: async function(search, push_history) {
+        this.display_message_func("fetching data for " + search);
         if(push_history) {
             this.push_history_func(search);
         }
         if(orbs[search] != undefined) {
-            this.center(search, orbs[search].subs);
+            this.init(search, orbs[search].subs);
         } 
         else {
             try {
@@ -204,7 +216,7 @@ OrbManager.prototype = {
                     this.display_message_func(resp.message);
                 }
                 if(resp.data) {
-                    this.center(search, resp.data);
+                    this.init(search, resp.data);
                 }
             }
             catch(err) {
@@ -214,8 +226,6 @@ OrbManager.prototype = {
         }
     },
     create_spring: function(orb, otherOrb) {
-
-        return;
 
         if(otherOrb.name == orb.name || otherOrb.subs == undefined) return;
 
@@ -300,6 +310,8 @@ OrbManager.prototype = {
 
         var drawArray = [];
         for(let orb of Object.values(this.orbs)) {
+
+            if(!orb.added) continue;
             drawArray.push({
                 offset:[
                     orb.body.position.x / world_size, 
