@@ -317,6 +317,7 @@ OrbManager.prototype = {
                     orb.body.position.x / world_size, 
                     orb.body.position.y / world_size], 
                 scale:orb.body.circleRadius / world_size,
+                depth:orb.body.circleRadius* 0.0001,
                 color:orb.color,
                 screen_ratio: screen_ratio,
                 border_size: border_size / screen_scale
