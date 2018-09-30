@@ -3,13 +3,6 @@
 
 <head>
 	<title>RedditViz</title>
-	<script src="/Chart.min.js"></script>
-	<script src="/chartjs-plugin-datalabels.js"></script>
-    <script language="javascript" src="/regl.min.js"></script>
-    <script language="javascript" src="/matter.min.js"></script>
-	<script src="/data.js"></script>
-	<script src="/graphics.js"></script>
-	<script src="/chart_util.js"></script>
 	<style type="text/css">
 		#canvas{
 			-moz-user-select: none;
@@ -48,10 +41,12 @@
         </div>
         <canvas id="canvas"></canvas>
         
-	</div>
+    </div>
+	<script src="/bundle.js"></script>
 	<script>
 
         var graphicsCanvas = document.getElementById('canvas');
+        var orbManager;
         
         document.getElementById('canvas').onclick = function(evt) {
             var orb = FindOrb(evt.layerX, evt.layerY);
@@ -63,13 +58,13 @@
             // }
         }
         window.addEventListener("mousemove", function(evt) {
-            orbManager.mouse_over(evt.clientX/screen_scale, evt.clientY/screen_scale);
+            orbManager.mouse_over(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
         });
         window.addEventListener("resize", function(evt) {
-            setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
+            redditviz.setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
         })
         window.addEventListener("click", function(evt) {
-            orbManager.mouse_click(evt.clientX/screen_scale, evt.clientY/screen_scale);
+            orbManager.mouse_click(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
         });
         document.getElementById("search-button").onclick = function(evt) {
             fetch_graph_set_history("r/" + document.getElementById('search-term').value);
@@ -97,7 +92,7 @@
             document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
         }
         var push_history = function(search) {
-            window.history.pushState({search:search}, "Title", create_url_from_search(search));
+            window.history.pushState({search:search}, "Title", redditviz.create_url_from_search(search));
         }
 
         var fetch_graph_set_history = function(search) {
@@ -113,13 +108,12 @@
             orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
         });
 
-        setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
+        orbManager = redditviz.init(
+            [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight],
+            display_message,
+            push_history
+        );
 
-        var regl = createREGL({})
-        drawBatch(regl);
-        
-        orbManager.display_message_func = display_message;
-        orbManager.push_history_func = push_history;
 
 	</script>
 </body>

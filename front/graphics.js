@@ -1,30 +1,22 @@
-var screen_size = [1.0, 1.0];
-var screen_scale = 1.0;
-var screen_ratio = 1.0;
+const regl = require('regl')()
+const data = require("./data")
 
-//  var colors = [
-//     [44/255.0, 19/255.0, 32/255.0, 1.0],
-//     [95/255.0, 75/255.0, 102/255.0, 1.0],
-//     [167/255.0, 173/255.0, 198/255.0, 1.0],
-//     [135/255.0, 151/255.0, 175/255.0, 1.0],
-//     [86/255.0, 102/255.0, 122/255.0, 1.0],
-// ];
-var colors = [
-    [197/255, 209/255, 221/255, 1.0],
-    [112/255, 110/255, 141/255, 1.0],
-    [168/255, 160/255, 157/255, 1.0],
-    [125/255, 101/255, 79/255, 1.0],
-    [176/255, 149/255, 126/255, 1.0],
-]
+"use strict"
 
+var screen_config = {
+  size :  [1.0, 1.0],
+  scale :  1.0,
+  ratio :  1.0,
+}
 var circlePoints = 4;
 
 var setScreenSize = function(size) {
-  screen_size = size;
-  // screen_scale = distance({x:0, y:0}, {x:screen_size[0], y:screen_size[1]});
-  screen_scale = Math.min(screen_size[0], screen_size[1]);
 
-  screen_ratio = screen_size[1] / screen_size[0];
+  screen_config.size = size;
+  // screen_config.scale = distance({x:0, y:0}, {x:screen_config.size[0], y:screen_config.size[1]});
+  screen_config.scale = Math.min(screen_config.size[0], screen_config.size[1]);
+
+  screen_config.ratio = screen_config.size[1] / screen_config.size[0];
 }
 
 var genCircleAttributes = function(r, p) {
@@ -116,7 +108,24 @@ regl.frame(function () {
   regl.clear({
     color: [0.7, 0.7, 0.7, 1]
   });
-  draw(orbManager.render());
+  draw(data.orbManager.render());
 });
 
 }
+
+var init = function(size, display_message, push_history) {
+
+  setScreenSize(size);
+
+  drawBatch(regl);
+  
+  data.orbManager.display_message_func = display_message;
+  data.orbManager.push_history_func = push_history;
+
+  return data.orbManager;
+}
+
+
+module.exports.setScreenSize = setScreenSize;
+module.exports.init = init;
+module.exports.screen_config = screen_config;

@@ -1,3 +1,16 @@
+var Matter = require("matter-js");
+var graphics = require("./graphics")
+
+"use strict"
+
+var colors = [
+    [197/255, 209/255, 221/255, 1.0],
+    [112/255, 110/255, 141/255, 1.0],
+    [168/255, 160/255, 157/255, 1.0],
+    [125/255, 101/255, 79/255, 1.0],
+    [176/255, 149/255, 126/255, 1.0],
+];
+
 
 var create_url_from_search = function(search) {
     return "/" + search;
@@ -206,8 +219,8 @@ OrbManager.prototype = {
         if(push_history) {
             this.push_history_func(search);
         }
-        if(orbs[search] != undefined) {
-            this.init(search, orbs[search].subs);
+        if(this.orbs[search] != undefined) {
+            this.init(search, this.orbs[search].subs);
         } 
         else {
             try {
@@ -319,15 +332,17 @@ OrbManager.prototype = {
                 scale:orb.body.circleRadius / world_size,
                 depth:orb.body.circleRadius* 0.0001,
                 color:orb.color,
-                screen_ratio: screen_ratio,
-                border_size: border_size / screen_scale
+                screen_ratio: graphics.screen_config.ratio,
+                border_size: border_size / graphics.screen_config.scale
             });
-            orb.move_text(screen_scale);
+            orb.move_text(graphics.screen_config.scale);
         }
         return drawArray;
     }
 }
 
+var orbManager = new OrbManager();
 
-orbManager = new OrbManager();
+module.exports.orbManager = orbManager;
+module.exports.create_url_from_search = create_url_from_search;
 
