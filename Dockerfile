@@ -16,5 +16,7 @@ RUN wget http://download.redis.io/redis-stable.tar.gz && \
 ADD . /app
 WORKDIR /app
 RUN npm install
+RUN npm install -g browserify
+RUN browserify ./front/app.js --standalone redditviz -o public/bundle.js
 
 CMD ./run_server_with_redis.sh
