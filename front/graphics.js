@@ -72,12 +72,14 @@ const draw = regl({
     uniform float depth;
     uniform vec2 offset;
     uniform float screen_ratio;
+    uniform mat4 MVP;
     varying float outside;
+
     void main() {
         vec2 pos = (vec2(position.x, position.y) * scale) + offset;
         pos.x = pos.x * screen_ratio;
         pos = (pos * 2.0) - vec2(1.0);
-        gl_Position = vec4(pos, depth, 1.0);
+        gl_Position = MVP * vec4(pos, depth, 1.0);
         outside = position.z;
     }`,
 
@@ -95,6 +97,7 @@ const draw = regl({
     depth: regl.prop('depth'),
     screen_ratio: regl.prop('screen_ratio'),
     border_size: regl.prop('border_size'),
+    MVP: regl.prop('MVP'),
   },
 
   depth: {

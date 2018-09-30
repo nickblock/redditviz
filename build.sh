@@ -1,2 +1,2 @@
 #!/bin/bash
-browserify ./front/app.js --standalone redditviz -o public/bundle.js
+browserify ./front/app.js --standalone redditviz -o public/bundle.js $@

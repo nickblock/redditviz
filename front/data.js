@@ -1,5 +1,6 @@
 var Matter = require("matter-js");
 var graphics = require("./graphics")
+var mat4 = require("gl-mat4");
 
 "use strict"
 
@@ -82,6 +83,9 @@ var body_mass = 10;
 var min_hover_dist = world_size / 10;
 var highlight_color = "red"
 var index = 0;
+var MVPMatrix = [];
+
+mat4.identity(MVPMatrix);
 
 var Orb = function(index, data, is_primary) {
     
@@ -314,6 +318,14 @@ OrbManager.prototype = {
             this.fetch("r/" + closestOrb.name, true);
         }
     },
+    cameraMatrix: function() {
+        var mat = [];
+
+        mat4.identity(mat);
+        mat4.scale(mat, mat, [0.5, 0.5, 0.5]);
+
+        return mat;
+    },
     render: function() {
 
         for(var i=0; i<this.springs.length; i++) {
@@ -333,7 +345,8 @@ OrbManager.prototype = {
                 depth:orb.body.circleRadius* 0.0001,
                 color:orb.color,
                 screen_ratio: graphics.screen_config.ratio,
-                border_size: border_size / graphics.screen_config.scale
+                border_size: border_size / graphics.screen_config.scale,
+                MVP: this.cameraMatrix()
             });
             orb.move_text(graphics.screen_config.scale);
         }
