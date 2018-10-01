@@ -21,7 +21,9 @@ var size_scale = 0.001;
 var border_size = 3;
 var max_item_count = 15;
 var spring_strength = 0.00005;
-var mutual_dist_multiplier = 0.6;
+var min_mutual_dist = 0.1;
+var max_mutual_count = 100
+var mutual_dist_multiplier = 0.005;
 var body_friction = 0.2;
 var body_mass = 10;
 var min_hover_dist = 0.1;
@@ -86,7 +88,7 @@ Orb.prototype = {
         if(other_attr !== undefined) {
             var attr = this.get_attraction(otherSub.name);
             if(attr !== undefined) {
-                var mutual = Math.min(other_attr, attr);
+                var mutual = Math.max(other_attr, attr);
                 //mutual = Math.max(0, mutual - Math.abs(other_attr - attr));
 
                 return mutual;
@@ -115,10 +117,10 @@ Orb.prototype = {
         this.div.style.zIndex = 1
         document.body.appendChild(this.div);
     },
-    move_text: function(scale) {
+    move_text: function(offset, scale) {
         if(this.added) {
-            this.div.style.left = scale * this.body.position.x  + "px";
-            this.div.style.bottom = scale * this.body.position.y + "px";
+            this.div.style.left = scale * (this.body.position.x+offset[0])  + "px";
+            this.div.style.bottom = scale * (this.body.position.y+offset[1]) + "px";
         }
     },
     set_text_color: function(color) {
@@ -160,6 +162,7 @@ var OrbManager = function() {
     this.display_message_func;
     this.push_history_func;
     this.springs = [];
+    this.bb;
 }
 OrbManager.prototype = {
 
@@ -218,7 +221,9 @@ OrbManager.prototype = {
 
         var ma = orb.get_mutual_attraction(otherOrb);
         if(ma !== undefined) {
-            var springlength = Math.max(0.0, (mutual_dist_multiplier) - ma);
+
+            console.log(orb.name + " " + otherOrb.name + " " + ma);
+            var springlength = Math.max(min_mutual_dist, (max_mutual_count) - ma) * mutual_dist_multiplier;
             var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
             this.springs.push(s);
         }
@@ -234,7 +239,7 @@ OrbManager.prototype = {
     fetch_subs: async function(orb) {
 
         try {
-            let resp = await data_fetch("r/" + orb.name);
+            let resp = await utils.data_fetch("r/" + orb.name);
             if(resp.data) {
                 orb.subs = resp.data;
                 for(let otherOrb of Object.values(this.orbs)) {
@@ -288,7 +293,7 @@ OrbManager.prototype = {
             this.fetch("r/" + closestOrb.name, true);
         }
     },
-    camera_matrix: function(bb) {
+    camera_matrix: function() {
 
         var mat = [];
 
@@ -306,7 +311,7 @@ OrbManager.prototype = {
             1.0, 
             0.0001
         ]);
-        mat4.translate(mat, mat, [0.5-bb.center.x, 0.5-bb.center.y, 0.0]);
+        mat4.translate(mat, mat, [0.5-this.bb.center.x, 0.5-this.bb.center.y, 0.0]);
         return mat;
     },
     render: function() {
@@ -317,12 +322,12 @@ OrbManager.prototype = {
         Matter.Engine.update(physicsEngine, 1000 / 60);
 
         var drawArray = [];
-        var bb = new utils.BoundingBox();
+        this.bb = new utils.BoundingBox();
         for(let orb of Object.values(this.orbs)) {
-            bb.add(orb.body.position);
+            this.bb.add(orb.body.position);
         }
 
-        var cam_matrix = this.camera_matrix(bb);
+        var cam_matrix = this.camera_matrix();
         for(let orb of Object.values(this.orbs)) {
 
             if(!orb.added) continue;
@@ -333,7 +338,7 @@ OrbManager.prototype = {
                 color:orb.color,
                 border_size: (border_size / graphics.screen_config.scale) / orb.radius
             });
-            orb.move_text(graphics.screen_config.scale);
+            orb.move_text([0.5-this.bb.center.x, 0.5-this.bb.center.y], graphics.screen_config.scale);
         }
         return drawArray;
     }
