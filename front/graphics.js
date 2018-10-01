@@ -1,5 +1,5 @@
 const regl = require('regl')()
-const data = require("./data")
+const data = require("./objects")
 
 "use strict"
 

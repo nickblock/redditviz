@@ -1,6 +1,7 @@
-var Matter = require("matter-js");
-var graphics = require("./graphics")
-var mat4 = require("gl-mat4");
+const Matter = require("matter-js");
+const graphics = require("./graphics")
+const utils = require("./utils")
+const mat4 = require("gl-mat4");
 
 "use strict"
 
@@ -13,41 +14,21 @@ var colors = [
 ];
 
 
-var create_url_from_search = function(search) {
-    return "/" + search;
-}
-var data_fetch = async function(search) {
+var physicsEngine = Matter.Engine.create();
+physicsEngine.world.gravity.scale = 0.0;
 
-    return new Promise(function(resolve, reject) {
-
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                try {
-                    var resp = JSON.parse(this.response);
-                    resolve(resp);
-                }
-                catch (err) {
-                    reject(err)
-                }
-            }
-        };
-        var url = create_url_from_search(search);
-        xhttp.open("GET", url+".json", true);
-        xhttp.send();
-    });
-}
-
-var distanceSqrd = function(v1, v2) {
-    var d = {
-        x: v1.x - v2.x,
-        y: v1.y - v2.y
-    }
-    return d.x*d.x + d.y*d.y;
-}
-var distance = function(v1, v2) {
-    return Math.sqrt(distanceSqrd(v1, v2));
-}
+var world_size = 10;
+var size_scale = 0.001;
+var border_size = 30;
+var max_item_count = 15;
+var spring_strength = 0.00005;
+var mutual_dist_multiplier = 0.6;
+var body_friction = 0.2;
+var body_mass = 10;
+var min_hover_dist = world_size / 10;
+var highlight_color = "red"
+var index = 0;
+var MVPMatrix = [];
 
 var Spring = function(bodyA, bodyB, length, strength) {
     this.bodyA = bodyA;
@@ -68,22 +49,6 @@ Spring.prototype = {
         Matter.Body.applyForce(this.bodyB, this.bodyB.position, {x:v.x*f, y:v.y*f});
     }
 }
-
-var physicsEngine = Matter.Engine.create();
-physicsEngine.world.gravity.scale = 0.0;
-
-var world_size = 10;
-var size_scale = 0.001;
-var border_size = 30;
-var max_item_count = 15;
-var spring_strength = 0.00005;
-var mutual_dist_multiplier = 0.6;
-var body_friction = 0.2;
-var body_mass = 10;
-var min_hover_dist = world_size / 10;
-var highlight_color = "red"
-var index = 0;
-var MVPMatrix = [];
 
 var Orb = function(index, data, is_primary) {
     
@@ -234,7 +199,7 @@ OrbManager.prototype = {
         } 
         else {
             try {
-                let resp = await data_fetch(search);
+                let resp = await utils.data_fetch(search);
                 if(resp.message !== undefined) {
                     this.display_message_func(resp.message);
                 }
@@ -301,7 +266,7 @@ OrbManager.prototype = {
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
-            var d = distanceSqrd(orb.body.position, {x:mx, y:my});
+            var d = utils.distanceSqrd(orb.body.position, {x:mx, y:my});
             if(d < closest) {
                 closest = d;
                 closestOrb = orb;
@@ -373,5 +338,4 @@ OrbManager.prototype = {
 var orbManager = new OrbManager();
 
 module.exports.orbManager = orbManager;
-module.exports.create_url_from_search = create_url_from_search;
 
