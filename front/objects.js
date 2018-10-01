@@ -17,15 +17,14 @@ var colors = [
 var physicsEngine = Matter.Engine.create();
 physicsEngine.world.gravity.scale = 0.0;
 
-var world_size = 10;
 var size_scale = 0.001;
-var border_size = 30;
+var border_size = 3;
 var max_item_count = 15;
 var spring_strength = 0.00005;
 var mutual_dist_multiplier = 0.6;
 var body_friction = 0.2;
 var body_mass = 10;
-var min_hover_dist = world_size / 10;
+var min_hover_dist = 0.1;
 var highlight_color = "red"
 var index = 0;
 var MVPMatrix = [];
@@ -53,8 +52,8 @@ Spring.prototype = {
 var Orb = function(index, data, is_primary) {
     
     var xpos, ypos;
-    xpos = world_size * 0.5;
-    ypos = world_size * 0.5;
+    xpos = 0.5;
+    ypos = 0.5;
     if(!is_primary) {
         [xpos, ypos] = this.spawn_pos(index);
     }
@@ -77,8 +76,8 @@ Orb.prototype = {
     spawn_pos: function(index) {
 
         //distribute orbs randomly around center of screen to start
-        xpos = world_size * Math.random();// (i/count);
-        ypos = world_size * Math.random();// (i/count);
+        xpos = Math.random();// (i/count);
+        ypos = Math.random();// (i/count);
 
         return [xpos, ypos];
     },
@@ -118,8 +117,8 @@ Orb.prototype = {
     },
     move_text: function(scale) {
         if(this.added) {
-            this.div.style.left = scale * this.body.position.x / world_size + "px";
-            this.div.style.bottom = scale * this.body.position.y / world_size + "px";
+            this.div.style.left = scale * this.body.position.x  + "px";
+            this.div.style.bottom = scale * this.body.position.y + "px";
         }
     },
     set_text_color: function(color) {
@@ -128,7 +127,7 @@ Orb.prototype = {
         }
     },
     calculate_radius: function(size) {
-        this.radius = size * size_scale * world_size;
+        this.radius = size * size_scale;
         return this.radius;
     },
     add: function() {
@@ -219,7 +218,7 @@ OrbManager.prototype = {
 
         var ma = orb.get_mutual_attraction(otherOrb);
         if(ma !== undefined) {
-            var springlength = Math.max(0.0, (mutual_dist_multiplier * world_size) - ma);
+            var springlength = Math.max(0.0, (mutual_dist_multiplier) - ma);
             var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
             this.springs.push(s);
         }
@@ -261,8 +260,8 @@ OrbManager.prototype = {
     },
 
     find_orb: function(mx, my) {
-        mx = mx * world_size;
-        my = (1.0 - my) * world_size;
+        mx = mx;
+        my = (1.0 - my);
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
@@ -289,29 +288,28 @@ OrbManager.prototype = {
             this.fetch("r/" + closestOrb.name, true);
         }
     },
-    camera_matrix: function() {
+    camera_matrix: function(bb) {
 
-        mat4.identity(MVPMatrix);
+        var mat = [];
 
-        mat4.translate(MVPMatrix, MVPMatrix, [
+        mat4.identity(mat);
+
+        mat4.translate(mat, mat, [
             -1.0, -1.0, 0.0
         ]);
-        mat4.scale(MVPMatrix, MVPMatrix, [
+        mat4.scale(mat, mat, [
             2.0, 2.0, 1.0
         ]);
         
-        var recipWorld = 1.0 / world_size;
-        
-        mat4.scale(MVPMatrix, MVPMatrix, [
-            recipWorld * graphics.screen_config.ratio, 
-            recipWorld, 
+        mat4.scale(mat, mat, [
+            graphics.screen_config.ratio, 
+            1.0, 
             0.0001
         ]);
-        return MVPMatrix;
+        mat4.translate(mat, mat, [0.5-bb.center.x, 0.5-bb.center.y, 0.0]);
+        return mat;
     },
     render: function() {
-
-        var cam_matrix = this.camera_matrix();
 
         for(var i=0; i<this.springs.length; i++) {
             this.springs[i].update();
@@ -319,6 +317,12 @@ OrbManager.prototype = {
         Matter.Engine.update(physicsEngine, 1000 / 60);
 
         var drawArray = [];
+        var bb = new utils.BoundingBox();
+        for(let orb of Object.values(this.orbs)) {
+            bb.add(orb.body.position);
+        }
+
+        var cam_matrix = this.camera_matrix(bb);
         for(let orb of Object.values(this.orbs)) {
 
             if(!orb.added) continue;
