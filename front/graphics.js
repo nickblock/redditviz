@@ -46,12 +46,11 @@ const draw = regl({
   frag: `
     precision mediump float;
     uniform vec4 color;
-    uniform float scale;
     uniform float border_size;
     varying float outside;
 
     bool inBorder() {
-      float distToEdge = (1.0 - outside) * scale;
+      float distToEdge = (1.0 - outside);
       return distToEdge < border_size;
     }
     void main() {
@@ -68,18 +67,14 @@ const draw = regl({
   vert: `
     precision mediump float;
     attribute vec3 position;
-    uniform float scale;
     uniform float depth;
-    uniform vec2 offset;
-    uniform float screen_ratio;
-    uniform mat4 MVP;
+    uniform mat4 projection_matrix;
+    uniform mat4 view_matrix;
+    uniform mat4 model_matrix;
     varying float outside;
 
     void main() {
-        vec2 pos = (vec2(position.x, position.y) * scale) + offset;
-        pos.x = pos.x * screen_ratio;
-        pos = (pos * 2.0) - vec2(1.0);
-        gl_Position = MVP * vec4(pos, depth, 1.0);
+        gl_Position = view_matrix * model_matrix * vec4(position.xy, depth, 1.0);
         outside = position.z;
     }`,
 
@@ -92,12 +87,11 @@ const draw = regl({
   uniforms: {
       
     color: regl.prop('color'),
-    offset: regl.prop('offset'),
-    scale: regl.prop('scale'),
     depth: regl.prop('depth'),
-    screen_ratio: regl.prop('screen_ratio'),
     border_size: regl.prop('border_size'),
-    MVP: regl.prop('MVP'),
+    projection_matrix: regl.prop("projection_matrix"),
+    view_matrix: regl.prop("view_matrix"),
+    model_matrix: regl.prop("model_matrix"),
   },
 
   depth: {

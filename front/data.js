@@ -74,7 +74,7 @@ physicsEngine.world.gravity.scale = 0.0;
 
 var world_size = 10;
 var size_scale = 0.001;
-var border_size = 3;
+var border_size = 30;
 var max_item_count = 15;
 var spring_strength = 0.00005;
 var mutual_dist_multiplier = 0.6;
@@ -84,8 +84,6 @@ var min_hover_dist = world_size / 10;
 var highlight_color = "red"
 var index = 0;
 var MVPMatrix = [];
-
-mat4.identity(MVPMatrix);
 
 var Orb = function(index, data, is_primary) {
     
@@ -165,7 +163,8 @@ Orb.prototype = {
         }
     },
     calculate_radius: function(size) {
-        return size * size_scale * world_size;
+        this.radius = size * size_scale * world_size;
+        return this.radius;
     },
     add: function() {
         this.create_text_element();
@@ -180,6 +179,13 @@ Orb.prototype = {
         document.body.removeChild(this.div);
         Matter.World.remove(physicsEngine.world, this.body);
         this.added = false;
+    },
+    world_matrix: function() {
+        var m = [];
+        mat4.identity(m);
+        mat4.translate(m,m,[this.body.position.x, this.body.position.y, 0.0]);
+        mat4.scale(m,m, [this.radius, this.radius, 1.0]);
+        return m;
     }
 
 }
@@ -318,15 +324,29 @@ OrbManager.prototype = {
             this.fetch("r/" + closestOrb.name, true);
         }
     },
-    cameraMatrix: function() {
-        var mat = [];
+    camera_matrix: function() {
 
-        mat4.identity(mat);
-        mat4.scale(mat, mat, [0.5, 0.5, 0.5]);
+        mat4.identity(MVPMatrix);
 
-        return mat;
+        mat4.translate(MVPMatrix, MVPMatrix, [
+            -1.0, -1.0, 0.0
+        ]);
+        mat4.scale(MVPMatrix, MVPMatrix, [
+            2.0, 2.0, 1.0
+        ]);
+        
+        var recipWorld = 1.0 / world_size;
+        
+        mat4.scale(MVPMatrix, MVPMatrix, [
+            recipWorld * graphics.screen_config.ratio, 
+            recipWorld, 
+            0.0001
+        ]);
+        return MVPMatrix;
     },
     render: function() {
+
+        var cam_matrix = this.camera_matrix();
 
         for(var i=0; i<this.springs.length; i++) {
             this.springs[i].update();
@@ -338,15 +358,11 @@ OrbManager.prototype = {
 
             if(!orb.added) continue;
             drawArray.push({
-                offset:[
-                    orb.body.position.x / world_size, 
-                    orb.body.position.y / world_size], 
-                scale:orb.body.circleRadius / world_size,
-                depth:orb.body.circleRadius* 0.0001,
+                model_matrix: orb.world_matrix(),
+                view_matrix: cam_matrix,
+                depth:orb.radius,
                 color:orb.color,
-                screen_ratio: graphics.screen_config.ratio,
-                border_size: border_size / graphics.screen_config.scale,
-                MVP: this.cameraMatrix()
+                border_size: (border_size / graphics.screen_config.scale) / orb.radius
             });
             orb.move_text(graphics.screen_config.scale);
         }
