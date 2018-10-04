@@ -19,11 +19,11 @@ physicsEngine.world.gravity.scale = 0.0;
 
 var size_scale = 0.001;
 var border_size = 3;
-var max_item_count = 15;
-var spring_strength = 0.00005;
+var max_item_count = 20;
+var spring_strength = 0.0005;
 var min_mutual_dist = 0.1;
-var max_mutual_count = 100
-var mutual_dist_multiplier = 0.005;
+var max_mutual_count = 10;
+var mutual_dist_multiplier = 0.05;
 var body_friction = 0.2;
 var body_mass = 10;
 var min_hover_dist = 0.1;
@@ -60,19 +60,20 @@ var Orb = function(index, data, is_primary) {
         [xpos, ypos] = this.spawn_pos(index);
     }
     this.color = colors[index%colors.length];
+
+    this.count = data.count;
     
     this.name = data.name;
-    this.subs = data;
+    this.subs = undefined;
     this.body = Matter.Bodies.circle(
         xpos, ypos,
-        this.calculate_radius(data.count), {
+        this.calculate_radius(), {
             frictionAir: body_friction,
             mass: body_mass
         }
     )
     //prevent collisions
     this.body.collisionFilter = 1 << index;
-    this.add();
 }
 Orb.prototype = {
     spawn_pos: function(index) {
@@ -88,7 +89,7 @@ Orb.prototype = {
         if(other_attr !== undefined) {
             var attr = this.get_attraction(otherSub.name);
             if(attr !== undefined) {
-                var mutual = Math.max(other_attr, attr);
+                var mutual = (other_attr / otherSub.count) + (attr / this.count);
                 //mutual = Math.max(0, mutual - Math.abs(other_attr - attr));
 
                 return mutual;
@@ -100,14 +101,12 @@ Orb.prototype = {
         if(this.subs == undefined) {
             return undefined;
         }
-        var v = 0;
         for(var i=0; i<this.subs.length; i++) {
             if(this.subs[i].name == sub_name) {
-                v = this.subs[i].count;
-                break;
+                return this.subs[i].count;
             }
         }
-        return v;
+        return 0;
     },
     create_text_element: function() {
         this.div = document.createElement("div");
@@ -128,8 +127,8 @@ Orb.prototype = {
             this.div.style.color = color;
         }
     },
-    calculate_radius: function(size) {
-        this.radius = size * size_scale;
+    calculate_radius: function() {
+        this.radius = this.count * size_scale;
         return this.radius;
     },
     add: function() {
@@ -183,6 +182,9 @@ OrbManager.prototype = {
                 
                 if(!is_primary) {
                     this.fetch_subs(orb);
+                }
+                else {
+                    orb.subs = data;
                 }
             }
             newOrbs[sub_data.name] = orb;
@@ -245,6 +247,7 @@ OrbManager.prototype = {
                 for(let otherOrb of Object.values(this.orbs)) {
                     this.create_spring(orb, otherOrb);
                 }
+                orb.add();
             }
         }
         catch(err) {
@@ -265,8 +268,9 @@ OrbManager.prototype = {
     },
 
     find_orb: function(mx, my) {
-        mx = mx;
-        my = (1.0 - my);
+        var offset = this.center_offset();
+        mx = mx - offset[0];
+        my = (1.0 - my) - offset[1];
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
@@ -293,6 +297,9 @@ OrbManager.prototype = {
             this.fetch("r/" + closestOrb.name, true);
         }
     },
+    center_offset: function() {
+        return [0.5-this.bb.center.x, 0.5-this.bb.center.y];
+    },
     camera_matrix: function() {
 
         var mat = [];
@@ -311,7 +318,9 @@ OrbManager.prototype = {
             1.0, 
             0.0001
         ]);
-        mat4.translate(mat, mat, [0.5-this.bb.center.x, 0.5-this.bb.center.y, 0.0]);
+        var t = this.center_offset();
+        t.push(0.0);
+        mat4.translate(mat, mat, t);
         return mat;
     },
     render: function() {
@@ -338,7 +347,7 @@ OrbManager.prototype = {
                 color:orb.color,
                 border_size: (border_size / graphics.screen_config.scale) / orb.radius
             });
-            orb.move_text([0.5-this.bb.center.x, 0.5-this.bb.center.y], graphics.screen_config.scale);
+            orb.move_text(this.center_offset(), graphics.screen_config.scale);
         }
         return drawArray;
     }
