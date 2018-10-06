@@ -2,6 +2,7 @@ const Matter = require("matter-js");
 const Graphics = require("./graphics")
 const Utils = require("./utils")
 const GLMat4 = require("gl-mat4");
+var Tween = require('@tweenjs/tween.js');
 
 "use strict"
 
@@ -29,6 +30,7 @@ var body_mass = 10;
 var min_hover_dist = 0.1;
 var highlight_color = "red"
 var index = 0;
+var scale_anim = 1000;
 var MVPMatrix = [];
 
 var Spring = function(bodyA, bodyB, length, strength) {
@@ -62,7 +64,7 @@ var Orb = function(index, data, is_primary) {
     this.color = colors[index%colors.length];
     
     this.count = data.count; 
-    this.radius = this.count * size_scale;
+    this.radius = 0;
     this.name = data.name;
     this.subs = undefined;
     this.body = Matter.Bodies.circle(
@@ -131,7 +133,14 @@ Orb.prototype = {
     add: function() {
         this.create_text_element();
         Matter.World.add(physicsEngine.world, this.body);
+        this.tween_scale();
         this.added = true;
+    },
+    tween_scale: function() {
+        this.scale_tween - new Tween.Tween(this)
+                        .to({radius:this.count * size_scale}, scale_anim)
+                        .easing(Tween.Easing.Quadratic.Out)
+                        .start();
     },
     remove: function() {
         
@@ -180,6 +189,10 @@ OrbManager.prototype = {
 
             if(this.orbs.hasOwnProperty(sub_data.name)) {
                 orb = this.orbs[sub_data.name];
+                orb.count = sub_data.count;
+                if(orb.added) {
+                    orb.tween_scale();
+                }
             }
             else {
                 orb = new Orb(i, sub_data, is_primary);
@@ -192,8 +205,6 @@ OrbManager.prototype = {
                 }
             }
             newOrbs[sub_data.name] = orb;
-
-            orb.count
         }
         this.remove_prev_orbs(newOrbs);
         this.orbs = newOrbs;
@@ -204,7 +215,7 @@ OrbManager.prototype = {
             this.push_history_func(search);
         }
         var orbName = search.replace("r/", "");
-        if(this.orbs[orbName] != undefined) {
+        if(this.orbs[orbName] != undefined && this.orbs[orbName].subs != undefined) {
             this.display_success(search);
             this.init(search, this.orbs[orbName].subs);
         } 
@@ -343,6 +354,8 @@ OrbManager.prototype = {
         return mat;
     },
     render: function() {
+
+        Tween.update();
 
         for(var i=0; i<this.springs.length; i++) {
             this.springs[i].update();
