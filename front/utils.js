@@ -1,8 +1,4 @@
 
-
-
-
-
 var create_url_from_search = function(search) {
     return "/" + search;
 }
@@ -72,6 +68,7 @@ BoundingBox.prototype = {
     this.center.y = ((this.max.y - this.min.y)/2.0) + this.min.y;
   }
 }
+
 
 
 module.exports = {

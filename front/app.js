@@ -1,14 +1,14 @@
-const graphics = require("./graphics");
-const data = require("./objects");
-const utils = require("./utils")
+const Graphics = require("./graphics");
+const Data = require("./objects");
+const Utils = require("./utils")
 
 
 module.exports = {
 
-    orbManager: data.orbManager,
-    create_url_from_search: utils.create_url_from_search,
-    setScreenSize:  graphics.setScreenSize,
-    init:  graphics.init,
-    screen_config:  graphics.screen_config,
+    orbManager: Data.orbManager,
+    create_url_from_search: Utils.create_url_from_search,
+    setScreenSize:  Graphics.setScreenSize,
+    init:  Graphics.init,
+    screen_config:  Graphics.screen_config,
 
 };

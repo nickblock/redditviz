@@ -1,7 +1,7 @@
 const Matter = require("matter-js");
-const graphics = require("./graphics")
-const utils = require("./utils")
-const mat4 = require("gl-mat4");
+const Graphics = require("./graphics")
+const Utils = require("./utils")
+const GLMat4 = require("gl-mat4");
 
 "use strict"
 
@@ -144,9 +144,9 @@ Orb.prototype = {
     },
     world_matrix: function() {
         var m = [];
-        mat4.identity(m);
-        mat4.translate(m,m,[this.body.position.x, this.body.position.y, 0.0]);
-        mat4.scale(m,m, [this.radius, this.radius, 1.0]);
+        GLMat4.identity(m);
+        GLMat4.translate(m,m,[this.body.position.x, this.body.position.y, 0.0]);
+        GLMat4.scale(m,m, [this.radius, this.radius, 1.0]);
         return m;
     }
 
@@ -211,7 +211,7 @@ OrbManager.prototype = {
         else {
             try {
                 this.display_message_func("fetching data for " + search);
-                let resp = await utils.data_fetch(search);
+                let resp = await Utils.data_fetch(search);
                 this.display_success(search);
                 if(resp.data) {
                     this.init(search, resp.data);
@@ -256,7 +256,7 @@ OrbManager.prototype = {
     fetch_subs: async function(orb) {
 
         try {
-            utils.data_fetch("r/" + orb.name).then(resp => {
+            Utils.data_fetch("r/" + orb.name).then(resp => {
 
                 if(resp.data) {
                     if(orb.removed) return;
@@ -293,7 +293,7 @@ OrbManager.prototype = {
         var closest = min_hover_dist * min_hover_dist;
         var closestOrb;
         for(let orb of Object.values(this.orbs)) {
-            var d = utils.distanceSqrd(orb.body.position, {x:mx, y:my});
+            var d = Utils.distanceSqrd(orb.body.position, {x:mx, y:my});
             if(d < closest) {
                 closest = d;
                 closestOrb = orb;
@@ -323,23 +323,23 @@ OrbManager.prototype = {
 
         var mat = [];
 
-        mat4.identity(mat);
+        GLMat4.identity(mat);
 
-        mat4.translate(mat, mat, [
+        GLMat4.translate(mat, mat, [
             -1.0, -1.0, 0.0
         ]);
-        mat4.scale(mat, mat, [
+        GLMat4.scale(mat, mat, [
             2.0, 2.0, 1.0
         ]);
         
-        mat4.scale(mat, mat, [
-            graphics.screen_config.ratio, 
+        GLMat4.scale(mat, mat, [
+            Graphics.screen_config.ratio, 
             1.0, 
             0.0001
         ]);
         var t = this.center_offset();
         t.push(0.0);
-        mat4.translate(mat, mat, t);
+        GLMat4.translate(mat, mat, t);
         return mat;
     },
     render: function() {
@@ -350,7 +350,7 @@ OrbManager.prototype = {
         Matter.Engine.update(physicsEngine, 1000 / 60);
 
         var drawArray = [];
-        this.bb = new utils.BoundingBox();
+        this.bb = new Utils.BoundingBox();
         for(let orb of Object.values(this.orbs)) {
             this.bb.add(orb.body.position);
         }
@@ -364,9 +364,9 @@ OrbManager.prototype = {
                 view_matrix: cam_matrix,
                 depth:orb.radius,
                 color:orb.color,
-                border_size: (border_size / graphics.screen_config.scale) / orb.radius
+                border_size: (border_size / Graphics.screen_config.scale) / orb.radius
             });
-            orb.move_text(this.center_offset(), graphics.screen_config.scale);
+            orb.move_text(this.center_offset(), Graphics.screen_config.scale);
         }
         return drawArray;
     }

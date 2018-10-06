@@ -1,5 +1,5 @@
-const regl = require('regl')()
-const data = require("./objects")
+const Regl = require('regl')()
+const Data = require("./objects")
 
 "use strict"
 
@@ -40,9 +40,9 @@ var genCircleElements = function(p) {
     return elements
 }
 
-var drawBatch = function(regl) {
+var drawBatch = function(Regl) {
     
-const draw = regl({
+const draw = Regl({
   frag: `
     precision mediump float;
     uniform vec4 color;
@@ -86,12 +86,12 @@ const draw = regl({
 
   uniforms: {
       
-    color: regl.prop('color'),
-    depth: regl.prop('depth'),
-    border_size: regl.prop('border_size'),
-    projection_matrix: regl.prop("projection_matrix"),
-    view_matrix: regl.prop("view_matrix"),
-    model_matrix: regl.prop("model_matrix"),
+    color: Regl.prop('color'),
+    depth: Regl.prop('depth'),
+    border_size: Regl.prop('border_size'),
+    projection_matrix: Regl.prop("projection_matrix"),
+    view_matrix: Regl.prop("view_matrix"),
+    model_matrix: Regl.prop("model_matrix"),
   },
 
   depth: {
@@ -101,11 +101,11 @@ const draw = regl({
   count: circlePoints * 3,
 });
 
-regl.frame(function () {
-  regl.clear({
+Regl.frame(function () {
+  Regl.clear({
     color: [0.7, 0.7, 0.7, 1]
   });
-  draw(data.orbManager.render());
+  draw(Data.orbManager.render());
 });
 
 }
@@ -114,12 +114,12 @@ var init = function(size, display_message, push_history) {
 
   setScreenSize(size);
 
-  drawBatch(regl);
+  drawBatch(Regl);
   
-  data.orbManager.display_message_func = display_message;
-  data.orbManager.push_history_func = push_history;
+  Data.orbManager.display_message_func = display_message;
+  Data.orbManager.push_history_func = push_history;
 
-  return data.orbManager;
+  return Data.orbManager;
 }
 
 
