@@ -28,7 +28,8 @@ var mutual_dist_multiplier = 0.05;
 var body_friction = 0.2;
 var body_mass = 10;
 var min_hover_dist = 0.1;
-var highlight_color = "red"
+var highlight_label_color = "red";
+var label_text_color = "black";
 var index = 0;
 var scale_anim = 1000;
 var MVPMatrix = [];
@@ -77,6 +78,7 @@ var Orb = function(index, data, is_primary) {
     this.body.collisionFilter = 1 << index;
     this.removed = false;
     this.add();
+    this.hoverin = false;
 }
 Orb.prototype = {
     spawn_pos: function(index) {
@@ -117,6 +119,7 @@ Orb.prototype = {
         this.div.appendChild(this.text);
         this.div.style.position = "absolute";
         this.div.style.zIndex = 1
+        this.div.style.color = label_text_color;
         document.body.appendChild(this.div);
     },
     move_text: function(offset, scale) {
@@ -152,6 +155,16 @@ Orb.prototype = {
                         .repeat(Infinity)
                         .start();
     },
+    hover: function(b) {
+
+        if(b) {
+            this.set_text_color(highlight_label_color);
+        }
+        else {
+            this.set_text_color(label_text_color);
+        }
+        this.hoverin = b;
+    },
     remove: function() {
         
         if(this.added) {
@@ -167,6 +180,15 @@ Orb.prototype = {
         GLMat4.translate(m,m,[this.body.position.x, this.body.position.y, 0.0]);
         GLMat4.scale(m,m, [this.radius, this.radius, 1.0]);
         return m;
+    },
+    z: function()
+    {
+        if(this.hoverin) {
+            return 0;
+        }
+        else {
+            return this.radius;
+        }
     }
 
 }
@@ -323,18 +345,23 @@ OrbManager.prototype = {
         }
         return closestOrb
     },
-    mouse_over: function(mx, my) {
+    hover_off: function() {
+
         for(let orb of Object.values(this.orbs)) {
-            orb.set_text_color("white");
+            orb.hover(false)
         }
+    },
+    mouse_over: function(mx, my) {
+        this.hover_off();
         var closestOrb = this.find_orb(mx, my);
         if(closestOrb) {
-            closestOrb.set_text_color(highlight_color);
+            closestOrb.hover(true);
         }
     },
     mouse_click: function(mx, my) {
         var closestOrb = this.find_orb(mx, my);
         if(closestOrb) {
+            this.hover_off();
             this.fetch("r/" + closestOrb.name, true);
         }
     },
@@ -386,8 +413,8 @@ OrbManager.prototype = {
             drawArray.push({
                 model_matrix: orb.world_matrix(),
                 view_matrix: cam_matrix,
-                depth:orb.radius,
-                color:orb.color,
+                depth: orb.z(),
+                color: orb.color,
                 border_size: (border_size / Graphics.screen_config.scale) / orb.radius
             });
             orb.move_text(this.center_offset(), Graphics.screen_config.scale);

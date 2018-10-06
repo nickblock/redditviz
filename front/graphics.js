@@ -8,7 +8,7 @@ var screen_config = {
   scale :  1.0,
   ratio :  1.0,
 }
-var circlePoints = 4;
+var circlePoints = 400;
 
 var setScreenSize = function(size) {
 
@@ -54,14 +54,15 @@ const draw = Regl({
       return distToEdge < border_size;
     }
     void main() {
+      /*
         if(inBorder()) {
             gl_FragColor = vec4(0,0,0,1);
         }
         else {
             gl_FragColor = color;
         }
-        
-      //  gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
+        */
+      gl_FragColor = mix(vec4(0,0,0,1.0), color, 1.0 - pow(outside, 16.0));
     }`,
 
   vert: `
