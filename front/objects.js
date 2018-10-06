@@ -172,10 +172,10 @@ Orb.prototype = {
 }
 
 var subreddit_message = function(input) {
-    return "This graph shows the other most commented on subreddits by the users of <a href=\"https//reddit.com/r/" +input+"\" target=\"_blank\">" + input + "</a>";
+    return "This graph shows the other most commented on subreddits by the users of <a href=\"https://reddit.com/" +input+"\" target=\"_blank\">" + input + "</a>";
 }
 var user_message = function(input) {
-    return "Most commented on subreddits of user <a href=\"https//reddit.com/user/" +input+"\" target=\"_blank\">" + input + "</a>";
+    return "Most commented on subreddits of user <a href=\"https://reddit.com/user/" +input.replace("u/","")+"\" target=\"_blank\">" + input + "</a>";
 }
 
 var OrbManager = function() {
@@ -247,7 +247,7 @@ OrbManager.prototype = {
     },
     display_success: function(search) {
         
-        if(search.substr(2) == "u/") {
+        if(search.substr(0, 2) == "u/") {
             this.display_message_func(user_message(search));
         }
         else {
