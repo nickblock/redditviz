@@ -76,7 +76,7 @@ var Orb = function(index, data, is_primary) {
     //prevent collisions
     this.body.collisionFilter = 1 << index;
     this.removed = false;
-    this.added = false;
+    this.add();
 }
 Orb.prototype = {
     spawn_pos: function(index) {
@@ -133,13 +133,23 @@ Orb.prototype = {
     add: function() {
         this.create_text_element();
         Matter.World.add(physicsEngine.world, this.body);
-        this.tween_scale();
+        this.tween_pending();
         this.added = true;
     },
     tween_scale: function() {
-        this.scale_tween - new Tween.Tween(this)
+        if(this.scale_tween) {
+            Tween.remove(this.scale_tween);
+        }
+        this.scale_tween = new Tween.Tween(this)
                         .to({radius:this.count * size_scale}, scale_anim)
-                        .easing(Tween.Easing.Quadratic.Out)
+                        .easing(Tween.Easing.Quadratic.In)
+                        .start();
+    },
+    tween_pending: function() {
+        this.scale_tween = new Tween.Tween(this)
+                        .to({radius:10 * size_scale}, scale_anim)
+                        .yoyo(true)
+                        .repeat(Infinity)
                         .start();
     },
     remove: function() {
@@ -202,6 +212,7 @@ OrbManager.prototype = {
                 }
                 else {
                     orb.subs = data;
+                    orb.tween_scale();
                 }
             }
             newOrbs[sub_data.name] = orb;
@@ -266,23 +277,23 @@ OrbManager.prototype = {
     },
     fetch_subs: async function(orb) {
 
-        try {
-            Utils.data_fetch("r/" + orb.name).then(resp => {
+        Utils.data_fetch("r/" + orb.name)
+        .then(resp => {
 
-                if(resp.data) {
-                    if(orb.removed) return;
+            if(resp.data) {
+                if(orb.removed) return;
 
-                    orb.subs = resp.data;
-                    for(let otherOrb of Object.values(this.orbs)) {
-                        this.create_spring(orb, otherOrb);
-                    }
-                    orb.add();
+                orb.subs = resp.data;
+                for(let otherOrb of Object.values(this.orbs)) {
+                    this.create_spring(orb, otherOrb);
                 }
-            });
-        }
-        catch(err) {
-            console.log(err);
-        }
+                orb.tween_scale();
+            }
+        })
+        .catch(err => {
+            orb.remove();
+            delete this.orbs[orb.name];
+        });
     },
 
     remove_prev_orbs: function(newOrbs) {
