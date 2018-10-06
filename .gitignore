@@ -3,3 +3,4 @@ cache/
 node_modules/
 npm-debug.log
 redis.rdb
+public/bundle.js
