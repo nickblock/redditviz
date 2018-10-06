@@ -60,20 +60,21 @@ var Orb = function(index, data, is_primary) {
         [xpos, ypos] = this.spawn_pos(index);
     }
     this.color = colors[index%colors.length];
-
-    this.count = data.count;
     
+    this.count = data.count; 
+    this.radius = this.count * size_scale;
     this.name = data.name;
     this.subs = undefined;
     this.body = Matter.Bodies.circle(
-        xpos, ypos,
-        this.calculate_radius(), {
+        xpos, ypos, 1.0, {
             frictionAir: body_friction,
             mass: body_mass
         }
     )
     //prevent collisions
     this.body.collisionFilter = 1 << index;
+    this.removed = false;
+    this.added = false;
 }
 Orb.prototype = {
     spawn_pos: function(index) {
@@ -127,10 +128,6 @@ Orb.prototype = {
             this.div.style.color = color;
         }
     },
-    calculate_radius: function() {
-        this.radius = this.count * size_scale;
-        return this.radius;
-    },
     add: function() {
         this.create_text_element();
         Matter.World.add(physicsEngine.world, this.body);
@@ -138,12 +135,12 @@ Orb.prototype = {
     },
     remove: function() {
         
-        if(!this.added) return;
-
-        console.log("remove " + this.name)
-        document.body.removeChild(this.div);
-        Matter.World.remove(physicsEngine.world, this.body);
+        if(this.added) {
+            document.body.removeChild(this.div);
+            Matter.World.remove(physicsEngine.world, this.body);
+        }
         this.added = false;
+        this.removed = true;
     },
     world_matrix: function() {
         var m = [];
@@ -153,6 +150,13 @@ Orb.prototype = {
         return m;
     }
 
+}
+
+var subreddit_message = function(input) {
+    return "This graph shows the other most commented on subreddits by the users of <a href=\"https//reddit.com/r/" +input+"\" target=\"_blank\">" + input + "</a>";
+}
+var user_message = function(input) {
+    return "Most commented on subreddits of user <a href=\"https//reddit.com/user/" +input+"\" target=\"_blank\">" + input + "</a>";
 }
 
 var OrbManager = function() {
@@ -188,25 +192,27 @@ OrbManager.prototype = {
                 }
             }
             newOrbs[sub_data.name] = orb;
+
+            orb.count
         }
         this.remove_prev_orbs(newOrbs);
         this.orbs = newOrbs;
         this.create_all_springs();
     },
     fetch: async function(search, push_history) {
-        this.display_message_func("fetching data for " + search);
         if(push_history) {
             this.push_history_func(search);
         }
-        if(this.orbs[search] != undefined) {
-            this.init(search, this.orbs[search].subs);
+        var orbName = search.replace("r/", "");
+        if(this.orbs[orbName] != undefined) {
+            this.display_success(search);
+            this.init(search, this.orbs[orbName].subs);
         } 
         else {
             try {
+                this.display_message_func("fetching data for " + search);
                 let resp = await utils.data_fetch(search);
-                if(resp.message !== undefined) {
-                    this.display_message_func(resp.message);
-                }
+                this.display_success(search);
                 if(resp.data) {
                     this.init(search, resp.data);
                 }
@@ -217,6 +223,15 @@ OrbManager.prototype = {
             }
         }
     },
+    display_success: function(search) {
+        
+        if(search.substr(2) == "u/") {
+            this.display_message_func(user_message(search));
+        }
+        else {
+            this.display_message_func(subreddit_message(search));
+        }
+    },
     create_spring: function(orb, otherOrb) {
 
         if(otherOrb.name == orb.name || otherOrb.subs == undefined) return;
@@ -224,7 +239,7 @@ OrbManager.prototype = {
         var ma = orb.get_mutual_attraction(otherOrb);
         if(ma !== undefined) {
 
-            console.log(orb.name + " " + otherOrb.name + " " + ma);
+            // console.log(orb.name + " " + otherOrb.name + " " + ma);c
             var springlength = Math.max(min_mutual_dist, (max_mutual_count) - ma) * mutual_dist_multiplier;
             var s = new Spring(orb.body, otherOrb.body, springlength, spring_strength);
             this.springs.push(s);
@@ -241,14 +256,18 @@ OrbManager.prototype = {
     fetch_subs: async function(orb) {
 
         try {
-            let resp = await utils.data_fetch("r/" + orb.name);
-            if(resp.data) {
-                orb.subs = resp.data;
-                for(let otherOrb of Object.values(this.orbs)) {
-                    this.create_spring(orb, otherOrb);
+            utils.data_fetch("r/" + orb.name).then(resp => {
+
+                if(resp.data) {
+                    if(orb.removed) return;
+
+                    orb.subs = resp.data;
+                    for(let otherOrb of Object.values(this.orbs)) {
+                        this.create_spring(orb, otherOrb);
+                    }
+                    orb.add();
                 }
-                orb.add();
-            }
+            });
         }
         catch(err) {
             console.log(err);
