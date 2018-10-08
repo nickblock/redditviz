@@ -183,12 +183,7 @@ Orb.prototype = {
     },
     z: function()
     {
-        if(this.hoverin) {
-            return 0;
-        }
-        else {
-            return this.radius;
-        }
+        return this.radius;
     }
 
 }
