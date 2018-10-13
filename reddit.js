@@ -104,7 +104,7 @@ Thread.prototype = {
       return this.parseComments(comment_tree);
     }
     catch (err) {
-      console.log(err.message);
+      console.log(err);
     }
   },
   recurseData: function(data) {
