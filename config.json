@@ -9,5 +9,6 @@
     "cache_invalid_user_time": -1,
     "chart_item_size": 20,
     "base_reddit_url": "https://www.reddit.com/",
-    "http_response_cache": false
+    "http_response_cache": false,
+    "cache_primer_amount": 10000
 }

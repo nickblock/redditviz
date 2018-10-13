@@ -9,9 +9,9 @@ Cache.prototype = {
     Connect: function() {
         this.redis_client = redis.createClient(global.config.redis_port, 'localhost');
         this.redis_client.on('error', function(err) {
-        console.log("no redis");
-        this.redis_client.quit();
-        this.redis_client = null;
+            console.log("no redis");
+            this.redis_client.quit();
+            this.redis_client = null;
         });
     },
     Get: function(key, timeout) {
