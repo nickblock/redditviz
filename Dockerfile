@@ -13,10 +13,15 @@ RUN wget http://download.redis.io/redis-stable.tar.gz && \
 	cd .. && \
 	rm -r redis-stable && rm redis-stable.tar.gz
 
-ADD . /app
+RUN npm install -g browserify
+RUN npm install -g pm2 
+
+ADD package.json /app/
+ADD package-lock.json /app/
 WORKDIR /app
 RUN npm install
-RUN npm install -g browserify
+
+ADD . .
 RUN browserify ./front/app.js --standalone redditviz -o public/bundle.js
 
 CMD ./run_server_with_redis.sh

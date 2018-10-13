@@ -1,6 +1,6 @@
 {
     "listen_port": 3000,
-    "redis_port": 6379,
+    "redis_port": 6380,
     "enum_user_sub_count": 100,
     "user_comment_limit": 100,
     "subreddit_thread_limit": 200,
