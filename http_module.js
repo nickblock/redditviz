@@ -29,7 +29,7 @@ var doGet = async function(url) {
                 const json_data = JSON.parse(data);
 
                 if(json_data.error == 400) {
-                    reject(json_data.message);
+                    reject("http get failed for " + url + "\n\n" + json_data.message);
                     return;
                 }
                 if(global.config.http_response_cache) {

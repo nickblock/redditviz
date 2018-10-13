@@ -52,9 +52,14 @@ var fill_from_front_page = async function(depth) {
     }
     
     while(CacheList.length) {
-      await get_subreddits(CacheList.pop());
-      if(SubSet.length % 100 == 0) {
-        console.log("Subs=" + SubSet.length + " Cache=" + CacheList.length);
+      try {
+        await get_subreddits(CacheList.pop());
+        if(SubSet.length % 100 == 0) {
+          console.log("Subs=" + SubSet.length + " Cache=" + CacheList.length);
+        }
+      }
+      catch(err) {
+        console.log("coudnt fetch " + err)
       }
     }
 
