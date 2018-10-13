@@ -14,7 +14,6 @@ RUN wget http://download.redis.io/redis-stable.tar.gz && \
 	rm -r redis-stable && rm redis-stable.tar.gz
 
 RUN npm install -g browserify
-RUN npm install -g pm2 
 
 ADD package.json /app/
 ADD package-lock.json /app/
