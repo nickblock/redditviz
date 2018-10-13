@@ -1,5 +1,5 @@
 const fs = require('fs');
-const fetch = require("node-fetch");
+const https = require("https")
 
 const cache_dir = "cache/"
 var convSlashToSpace = function(url) {
@@ -16,22 +16,32 @@ var getCacheFilePath = function(url) {
 
 var doGet = async function(url) {
 
-    try {
-        const response = await fetch(url);
-        const json_data = await response.json();
-    
-        if(json_data.error == 400) {
-            throw new Error(json_data.message);
-        }
-        if(global.config.http_response_cache) {
-            fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
-        }
-        return (json_data);
-    }
-    catch (err) {
-        throw new Error(err.message)
-    }
 
+    return new Promise(function(resolve, reject) {
+        https.get(url, (resp) => {
+            let data = '';
+
+              // A chunk of data has been recieved.
+              resp.on('data', (chunk) => {
+                data += chunk;
+              });
+              resp.on('end', () => {
+                const json_data = JSON.parse(data);
+
+                if(json_data.error == 400) {
+                    reject(json_data.message);
+                    return;
+                }
+                if(global.config.http_response_cache) {
+                    fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
+                }
+
+                resolve(json_data);
+              });
+        }).on("error", (err) => {
+            reject(err);
+        });  
+    });
 }
 
 var doGetWithCache = async function(url) {
