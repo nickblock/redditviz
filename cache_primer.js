@@ -25,7 +25,8 @@ var get_subreddits = async function(subreddit) {
     var result = await subreddit.getSubredditsCached();
   
     var count = 0;
-    for(var i=0; i<global.config.chart_item_size ;i++) {
+    var limit = Math.min(global.config.chart_item_size, result.length);
+    for(var i=0; i<limit ;i++) {
         add_to_cache_list(result[i].name);
         if(count++ > global.config.chart_item_size) {
           return;

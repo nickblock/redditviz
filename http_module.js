@@ -1,5 +1,6 @@
 const fs = require('fs');
-const https = require("https")
+const https = require("https");
+const validUrl = require('valid-url');
 
 const cache_dir = "cache/"
 var convSlashToSpace = function(url) {
@@ -18,6 +19,9 @@ var doGet = async function(url) {
 
 
     return new Promise(function(resolve, reject) {
+        if(!validUrl.isUri(url)) {
+            reject("not valid url : " + url)
+        } 
         https.get(url, (resp) => {
             let data = '';
 
