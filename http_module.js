@@ -2,6 +2,7 @@ const fs = require('fs');
 const https = require("https");
 const validUrl = require('valid-url');
 const url = require("url");
+const dnscache = require('dns-cache')(10000);
 
 const cache_dir = "cache/"
 var convSlashToSpace = function(url) {
