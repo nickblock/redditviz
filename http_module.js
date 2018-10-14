@@ -17,7 +17,6 @@ var getCacheFilePath = function(url) {
     return getcacheDir() + convSlashToSpace(url) + ".txt";
 }
 
-var total_gets = 0;
 var doGet = async function(request) {
 
     return new Promise(function(resolve, reject) {
@@ -33,9 +32,6 @@ var doGet = async function(request) {
         };
         https.get(options, (resp) => {
 
-            total_gets ++;
-
-            console.log("total_gets="+total_gets);
             let data = '';
 
               // A chunk of data has been recieved.
@@ -44,7 +40,6 @@ var doGet = async function(request) {
               });
               resp.on('end', () => {
 
-                total_gets--;
                 const json_data = JSON.parse(data);
 
                 if(json_data.error == 400) {
@@ -58,7 +53,6 @@ var doGet = async function(request) {
                 resolve(json_data);
               });
         }).on("error", (err) => {
-            total_gets--;
             reject(err);
         });  
     });
