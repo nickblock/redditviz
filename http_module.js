@@ -1,6 +1,7 @@
 const fs = require('fs');
 const https = require("https");
 const validUrl = require('valid-url');
+const url = require("url");
 
 const cache_dir = "cache/"
 var convSlashToSpace = function(url) {
@@ -15,14 +16,20 @@ var getCacheFilePath = function(url) {
     return getcacheDir() + convSlashToSpace(url) + ".txt";
 }
 
-var doGet = async function(url) {
-
+var doGet = async function(request) {
 
     return new Promise(function(resolve, reject) {
-        if(!validUrl.isUri(url)) {
-            reject("not valid url : " + url)
-        } 
-        https.get(url.replace("https://", ""), (resp) => {
+        if(!validUrl.isUri(request)) {
+            reject("not valid url : " + request)
+        }
+        
+        var theUrl = url.parse(request);
+        
+        options = {
+            host: theUrl.host,
+            path: theUrl.pathname
+        };
+        https.get(options, (resp) => {
             let data = '';
 
               // A chunk of data has been recieved.
