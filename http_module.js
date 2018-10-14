@@ -22,7 +22,7 @@ var doGet = async function(url) {
         if(!validUrl.isUri(url)) {
             reject("not valid url : " + url)
         } 
-        https.get(url, (resp) => {
+        https.get(url.replace("https://", ""), (resp) => {
             let data = '';
 
               // A chunk of data has been recieved.
