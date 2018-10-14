@@ -63,7 +63,7 @@ var Orb = function(index, data, is_primary) {
         [xpos, ypos] = this.spawn_pos(index);
     }
     this.color = colors[index%colors.length];
-    
+    this.create_hi_color();
     this.count = data.count; 
     this.radius = 0;
     this.name = data.name;
@@ -88,6 +88,13 @@ Orb.prototype = {
         ypos = Math.random();// (i/count);
 
         return [xpos, ypos];
+    },
+    create_hi_color: function() {
+        this.hi_color = [1,1,1,1];
+        for(var i=0; i<3;i++) {
+
+            this.hi_color[i] = this.color[i] + ((1-this.color[i])*0.5);           
+        }
     },
     get_mutual_attraction: function(otherSub) {
         var other_attr = otherSub.get_attraction(this.name);
@@ -180,6 +187,14 @@ Orb.prototype = {
         GLMat4.translate(m,m,[this.body.position.x, this.body.position.y, 0.0]);
         GLMat4.scale(m,m, [this.radius, this.radius, 1.0]);
         return m;
+    },
+    get_color: function() {
+        if(!this.hoverin) {
+            return this.color;
+        }
+        else {
+            return this.hi_color;
+        }
     },
     z: function()
     {
@@ -409,7 +424,7 @@ OrbManager.prototype = {
                 model_matrix: orb.world_matrix(),
                 view_matrix: cam_matrix,
                 depth: orb.z(),
-                color: orb.color,
+                color: orb.get_color(),
                 border_size: (border_size / Graphics.screen_config.scale) / orb.radius
             });
             orb.move_text(this.center_offset(), Graphics.screen_config.scale);
