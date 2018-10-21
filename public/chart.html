@@ -27,95 +27,130 @@
             position:absolute;
             z-index: 1;
         }
-	</style>
+        #info_box {
+            position:absolute;
+            bottom:10px;
+            left:10px;
+            height:40;
+            width:40;
+            z-index: 1;
+        }
+        #info_content {
+            border-radius: 25px;
+            border-size: 5px;
+            visibility: hidden;
+            width:30%;
+            background:rgba(50,50,50,0.5);
+        }
+    </style>
 </head>
 
 <body>
-	<div id="overlay">
+
+    <div id="overlay">
         <div id="message"></div> 
             <div id="search-box">
-                <div>Search</div> 
+                Search 
                 <input type="text" id="search-term"/><button id="search-button">Go</button>
-                <div id="help-search">Prefix with u/ for users or r/ for subreddits</div>
             </div>
         </div>
         <canvas id="canvas"></canvas>
-        
+        <div id="info_box">
+            <div id="info_content">
+                <br><br>
+                Each box represents a subreddit, The size of the boxes relates to the number of comments received by commenters of this subreddit. The proximity of the boxes to one another relates to the number of common users shasred between those subreddits.<br>
+                The following tech was employed:<br>
+                <a href="http://brm.io/matter-js/"> Matter.js<a/><br>
+                <a href="https://regl-project.github.io/regl/www/gallery.html"> Regl.js</a><br>
+                This app was created by engineblock ltd.<br>
+                <br><br>
+            </div>
+            <div id="info_button" style="cursor: pointer;"  onclick="toggle_info();">
+                <img width=100 height=100 src="/info.svg"/>
+            </div>
+            <script>
+                    
+                var info_showing = false;
+                toggle_info = function() {
+                    info_showing = !info_showing;
+                    document.getElementById('info_content').style.visibility = info_showing ? "visible" : "hidden";
+                }   
+            </script>
+        </div>
+        <script src="/bundle.js"></script>
+        <script>
+
+            var graphicsCanvas = document.getElementById('canvas');
+            var orbManager;
+            
+            document.getElementById('canvas').onclick = function(evt) {
+                var orb = FindOrb(evt.layerX, evt.layerY);
+                console.log("x:" + evt.layerX + " y:" + evt.layerY + " " +orb.l);
+                // var activePoints = window.reddit_graph.getElementsAtEvent(evt);
+                // if(activePoints.length) {
+                //     fetch_graph_set_history("r/" + activePoints["0"].$datalabels._model.lines);
+                //     // fetch_graph_set_history("r/" + activePoints[0]._model.label);
+                // }
+            }
+            window.addEventListener("mousemove", function(evt) {
+                orbManager.mouse_over(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
+            });
+            window.addEventListener("click", function(evt) {
+                orbManager.mouse_click(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
+            });
+            window.addEventListener("resize", function(evt) {
+                redditviz.setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
+            })
+            document.getElementById("search-button").onclick = function(evt) {
+                fetch_graph_set_history("r/" + document.getElementById('search-term').value);
+            }
+            document.getElementById("search-term").addEventListener("keyup", function(evt) {
+                if (event.keyCode === 13) {
+                    fetch_graph_set_history(format_seach_term(document.getElementById('search-term').value));
+                }
+            });
+            var format_seach_term = function(input) {
+                if(input.substr(0,2) == "u/" || input.substr(0,2) == "r/") {
+                    return input;
+                }
+                else {
+                    return "r/" + input;
+                }
+            }
+            var get_relevant_search_from_address = function() {
+                var remove_proto = window.location.href.replace("http://", "");
+                var first_slash = remove_proto.indexOf("/") +1;
+                var result = remove_proto.substr(first_slash, remove_proto.length - first_slash) || "r/AskReddit";
+                return result;
+            }
+            var display_message = function(input) {
+                document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
+            }
+            var push_history = function(search) {
+                window.history.pushState({search:search}, "Title", redditviz.create_url_from_search(search));
+            }
+
+            var fetch_graph_set_history = function(search) {
+                orbManager.fetch(search, true);
+            }
+
+            window.onload = function() {
+
+                orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
+            };
+            window.addEventListener('popstate', function(event) {
+
+                orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
+            });
+
+            orbManager = redditviz.init(
+                [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight],
+                display_message,
+                push_history
+            );
+
+        </script>
     </div>
-	<script src="/bundle.js"></script>
-	<script>
-
-        var graphicsCanvas = document.getElementById('canvas');
-        var orbManager;
-        
-        document.getElementById('canvas').onclick = function(evt) {
-            var orb = FindOrb(evt.layerX, evt.layerY);
-            console.log("x:" + evt.layerX + " y:" + evt.layerY + " " +orb.l);
-            // var activePoints = window.reddit_graph.getElementsAtEvent(evt);
-            // if(activePoints.length) {
-            //     fetch_graph_set_history("r/" + activePoints["0"].$datalabels._model.lines);
-            //     // fetch_graph_set_history("r/" + activePoints[0]._model.label);
-            // }
-        }
-        window.addEventListener("mousemove", function(evt) {
-            orbManager.mouse_over(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
-        });
-        window.addEventListener("resize", function(evt) {
-            redditviz.setScreenSize([graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight]);
-        })
-        window.addEventListener("click", function(evt) {
-            orbManager.mouse_click(evt.clientX/redditviz.screen_config.scale, evt.clientY/redditviz.screen_config.scale);
-        });
-        document.getElementById("search-button").onclick = function(evt) {
-            fetch_graph_set_history("r/" + document.getElementById('search-term').value);
-        }
-        document.getElementById("search-term").addEventListener("keyup", function(evt) {
-            if (event.keyCode === 13) {
-                fetch_graph_set_history(format_seach_term(document.getElementById('search-term').value));
-            }
-        });
-        var format_seach_term = function(input) {
-            if(input.substr(0,2) == "u/" || input.substr(0,2) == "r/") {
-                return input;
-            }
-            else {
-                return "r/" + input;
-            }
-        }
-        var get_relevant_search_from_address = function() {
-            var remove_proto = window.location.href.replace("http://", "");
-            var first_slash = remove_proto.indexOf("/") +1;
-            var result = remove_proto.substr(first_slash, remove_proto.length - first_slash) || "r/AskReddit";
-            return result;
-        }
-        var display_message = function(input) {
-            document.getElementById('message').innerHTML = "<h1>" + input + "</h1>";
-        }
-        var push_history = function(search) {
-            window.history.pushState({search:search}, "Title", redditviz.create_url_from_search(search));
-        }
-
-        var fetch_graph_set_history = function(search) {
-            orbManager.fetch(search, true);
-        }
-
-		window.onload = function() {
-
-            orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
-        };
-        window.addEventListener('popstate', function(event) {
-
-            orbManager.fetch(get_relevant_search_from_address(window.location.href), false);
-        });
-
-        orbManager = redditviz.init(
-            [graphicsCanvas.offsetWidth, graphicsCanvas.offsetHeight],
-            display_message,
-            push_history
-        );
-
-
-	</script>
 </body>
 
 </html>
