@@ -40,17 +40,23 @@ var doGet = async function(request) {
               });
               resp.on('end', () => {
 
-                const json_data = JSON.parse(data);
+                try {
 
-                if(json_data.error == 400) {
-                    reject("http get failed for " + url + "\n\n" + json_data.message);
-                    return;
-                }
-                if(global.config.http_response_cache) {
-                    fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
-                }
+                    const json_data = JSON.parse(data);
 
-                resolve(json_data);
+                    if(json_data.error == 400) {
+                        reject("http get failed for " + url + "\n\n" + json_data.message);
+                        return;
+                    }
+                    if(global.config.http_response_cache) {
+                        fs.writeFileSync(getCacheFilePath(url), JSON.stringify(json_data));
+                    }
+
+                    resolve(json_data);
+                }
+                catch(err) {
+                    reject(err);
+                }
               });
         }).on("error", (err) => {
             reject(err);
