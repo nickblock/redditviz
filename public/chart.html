@@ -37,7 +37,7 @@
         }
         #info_content {
             border-radius: 25px;
-            border-size: 5px;
+            padding: 5px;
             visibility: hidden;
             width:30%;
             background:rgba(50,50,50,0.5);
@@ -57,13 +57,14 @@
         <canvas id="canvas"></canvas>
         <div id="info_box">
             <div id="info_content">
-                <br><br>
-                Each box represents a subreddit, The size of the boxes relates to the number of comments received by commenters of this subreddit. The proximity of the boxes to one another relates to the number of common users shasred between those subreddits.<br>
+                <br>
+                Each box represents a subreddit, The size of the boxes relate to the number of comments received by commenters of this subreddit. The proximity of the boxes to one another relates to the number of common users shared between those subreddits.<br>
+                Results are heavily cached, so maybe showing data that is old.<br><br>
+                You can search for a user using the search box by prefixing the name with "u/"<br> <br>
                 The following tech was employed:<br>
                 <a href="http://brm.io/matter-js/"> Matter.js<a/><br>
-                <a href="https://regl-project.github.io/regl/www/gallery.html"> Regl.js</a><br>
-                This app was created by engineblock ltd.<br>
-                <br><br>
+                <a href="https://regl-project.github.io/regl/www/gallery.html"> Regl.js</a><br><br>
+                This app was created by engineblock ltd.<br><br>
             </div>
             <div id="info_button" style="cursor: pointer;"  onclick="toggle_info();">
                 <img width=100 height=100 src="/info.svg"/>
@@ -119,6 +120,7 @@
             }
             var get_relevant_search_from_address = function() {
                 var remove_proto = window.location.href.replace("http://", "");
+                var remove_proto = window.location.href.replace("https://", "");
                 var first_slash = remove_proto.indexOf("/") +1;
                 var result = remove_proto.substr(first_slash, remove_proto.length - first_slash) || "r/AskReddit";
                 return result;
