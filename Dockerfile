@@ -21,6 +21,6 @@ WORKDIR /app
 RUN npm install
 
 ADD . .
-RUN browserify ./front/app.js --standalone redditviz -o public/bundle.js
+RUN browserify ./front/app.js  -g uglifyify --standalone redditviz -o public/bundle.js
 
 CMD ./run_server_with_redis.sh
